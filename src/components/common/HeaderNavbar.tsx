@@ -1,0 +1,158 @@
+import React from 'react';
+import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock } from 'lucide-react';
+import { Role, School } from '../../types';
+
+interface HeaderNavbarProps {
+  currentRole: Role;
+  onRoleChange: (role: Role) => void;
+  schools: School[];
+  selectedSchoolId: string;
+  onSchoolChange: (schoolId: string) => void;
+  unreadNotifCount: number;
+  onOpenNotifications: () => void;
+  onOpenScanModal: () => void;
+  isAdminLoggedIn?: boolean;
+  onAdminLoginClick?: () => void;
+  onAdminLogout?: () => void;
+}
+
+export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
+  currentRole,
+  onRoleChange,
+  schools,
+  selectedSchoolId,
+  onSchoolChange,
+  unreadNotifCount,
+  onOpenNotifications,
+  onOpenScanModal,
+  isAdminLoggedIn = false,
+  onAdminLoginClick,
+  onAdminLogout,
+}) => {
+  return (
+    <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Brand Logo & Title */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-amber-500 p-0.5 shadow-lg shadow-emerald-950/50 flex items-center justify-center">
+            <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
+              <Target className="w-6 h-6 text-amber-400" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-black tracking-tight text-white">PanahanEdu</h1>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                PRO 2026
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Sistem Ekstrakurikuler Panahan Sekolah Terpadu
+            </p>
+          </div>
+        </div>
+
+        {/* Center Controls: School Selector & Role Switcher */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* School Selector Dropdown */}
+          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
+            <SchoolIcon className="w-4 h-4 text-amber-400" />
+            <select
+              value={selectedSchoolId}
+              onChange={(e) => onSchoolChange(e.target.value)}
+              className="bg-transparent text-xs text-slate-200 font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="ALL" className="bg-slate-900">
+                🌐 Semua Sekolah Mitra
+              </option>
+              {schools.map((s) => (
+                <option key={s.id} value={s.id} className="bg-slate-900">
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Role Switcher Pill Buttons */}
+          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button
+              onClick={() => {
+                onRoleChange('admin');
+                if (!isAdminLoggedIn && onAdminLoginClick) {
+                  onAdminLoginClick();
+                }
+              }}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                currentRole === 'admin'
+                  ? 'bg-emerald-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {isAdminLoggedIn ? (
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+              ) : (
+                <Lock className="w-3.5 h-3.5 text-slate-400" />
+              )}
+              <span>Admin / Pelatih</span>
+            </button>
+            <button
+              onClick={() => onRoleChange('parent')}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                currentRole === 'parent'
+                  ? 'bg-purple-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Portal Orang Tua
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Action Icons & Admin Auth Status */}
+        <div className="flex items-center gap-2">
+          {currentRole === 'admin' && (
+            <>
+              {isAdminLoggedIn ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={onOpenScanModal}
+                    className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  >
+                    <QrCode className="w-3.5 h-3.5" /> Scan QR
+                  </button>
+                  <button
+                    onClick={onAdminLogout}
+                    className="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all"
+                    title="Keluar dari mode admin"
+                  >
+                    <LogOut className="w-3.5 h-3.5 text-rose-400" /> Logout Admin
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={onAdminLoginClick}
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                >
+                  <Lock className="w-3.5 h-3.5" /> Login Admin
+                </button>
+              )}
+            </>
+          )}
+
+          <button
+            onClick={onOpenNotifications}
+            className="p-2 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl relative transition-all"
+            title="Pusat Notifikasi & Broadcast"
+          >
+            <Bell className="w-4 h-4 text-slate-300" />
+            {unreadNotifCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
+                {unreadNotifCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};

@@ -1,0 +1,80 @@
+import {
+  School, Coach, Student, Schedule, StudentAttendance,
+  CoachAttendance, ArcheryScoreRecord, SppPayment, SystemNotification
+} from '../types';
+import {
+  INITIAL_SCHOOLS, INITIAL_COACHES, INITIAL_STUDENTS, INITIAL_SCHEDULES,
+  INITIAL_STUDENT_ATTENDANCE, INITIAL_COACH_ATTENDANCE, INITIAL_SCORES,
+  INITIAL_PAYMENTS, INITIAL_NOTIFICATIONS
+} from '../data/initialData';
+
+const KEYS = {
+  SCHOOLS: 'panahan_schools_v1',
+  COACHES: 'panahan_coaches_v1',
+  STUDENTS: 'panahan_students_v1',
+  SCHEDULES: 'panahan_schedules_v1',
+  STUDENT_ATTENDANCE: 'panahan_student_att_v1',
+  COACH_ATTENDANCE: 'panahan_coach_att_v1',
+  SCORES: 'panahan_scores_v1',
+  PAYMENTS: 'panahan_payments_v1',
+  NOTIFICATIONS: 'panahan_notifications_v1',
+};
+
+function getItem<T>(key: string, defaultValue: T): T {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : defaultValue;
+  } catch (err) {
+    console.error(`Error loading ${key} from storage:`, err);
+    return defaultValue;
+  }
+}
+
+function setItem<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.error(`Error saving ${key} to storage:`, err);
+  }
+}
+
+export const StorageService = {
+  getSchools: (): School[] => getItem(KEYS.SCHOOLS, INITIAL_SCHOOLS),
+  saveSchools: (schools: School[]) => setItem(KEYS.SCHOOLS, schools),
+
+  getCoaches: (): Coach[] => getItem(KEYS.COACHES, INITIAL_COACHES),
+  saveCoaches: (coaches: Coach[]) => setItem(KEYS.COACHES, coaches),
+
+  getStudents: (): Student[] => getItem(KEYS.STUDENTS, INITIAL_STUDENTS),
+  saveStudents: (students: Student[]) => setItem(KEYS.STUDENTS, students),
+
+  getSchedules: (): Schedule[] => getItem(KEYS.SCHEDULES, INITIAL_SCHEDULES),
+  saveSchedules: (schedules: Schedule[]) => setItem(KEYS.SCHEDULES, schedules),
+
+  getStudentAttendance: (): StudentAttendance[] => getItem(KEYS.STUDENT_ATTENDANCE, INITIAL_STUDENT_ATTENDANCE),
+  saveStudentAttendance: (att: StudentAttendance[]) => setItem(KEYS.STUDENT_ATTENDANCE, att),
+
+  getCoachAttendance: (): CoachAttendance[] => getItem(KEYS.COACH_ATTENDANCE, INITIAL_COACH_ATTENDANCE),
+  saveCoachAttendance: (att: CoachAttendance[]) => setItem(KEYS.COACH_ATTENDANCE, att),
+
+  getScores: (): ArcheryScoreRecord[] => getItem(KEYS.SCORES, INITIAL_SCORES),
+  saveScores: (scores: ArcheryScoreRecord[]) => setItem(KEYS.SCORES, scores),
+
+  getPayments: (): SppPayment[] => getItem(KEYS.PAYMENTS, INITIAL_PAYMENTS),
+  savePayments: (payments: SppPayment[]) => setItem(KEYS.PAYMENTS, payments),
+
+  getNotifications: (): SystemNotification[] => getItem(KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS),
+  saveNotifications: (notifs: SystemNotification[]) => setItem(KEYS.NOTIFICATIONS, notifs),
+
+  resetAllData: () => {
+    localStorage.removeItem(KEYS.SCHOOLS);
+    localStorage.removeItem(KEYS.COACHES);
+    localStorage.removeItem(KEYS.STUDENTS);
+    localStorage.removeItem(KEYS.SCHEDULES);
+    localStorage.removeItem(KEYS.STUDENT_ATTENDANCE);
+    localStorage.removeItem(KEYS.COACH_ATTENDANCE);
+    localStorage.removeItem(KEYS.SCORES);
+    localStorage.removeItem(KEYS.PAYMENTS);
+    localStorage.removeItem(KEYS.NOTIFICATIONS);
+  }
+};
