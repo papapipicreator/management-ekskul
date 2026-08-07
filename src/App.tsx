@@ -15,7 +15,7 @@ import {
   Clock,
   QrCode,
 } from 'lucide-react';
-import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification } from './types';
+import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount } from './types';
 import {
   INITIAL_SCHOOLS,
   INITIAL_STUDENTS,
@@ -40,14 +40,48 @@ import { CoachScanModal } from './components/coach/CoachScanModal';
 import { NotificationCenterModal } from './components/admin/NotificationCenterModal';
 import { AdminLoginModal } from './components/admin/AdminLoginModal';
 import { ChangePasswordModal } from './components/admin/ChangePasswordModal';
-import { ShieldCheck, Lock, KeyRound, ArrowRight, LogOut } from 'lucide-react';
+import { UserManagementModal } from './components/admin/UserManagementModal';
+import { ShieldCheck, Lock, KeyRound, ArrowRight, LogOut, UserPlus } from 'lucide-react';
+
+const INITIAL_USER_ACCOUNTS: UserAccount[] = [
+  {
+    id: 'u-1',
+    name: 'Administrator Utama',
+    username: 'admin',
+    password: 'admin123',
+    role: 'admin',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'u-2',
+    name: 'Pelatih Panahan Utama',
+    username: 'pelatih',
+    password: 'pelatih123',
+    role: 'coach',
+    createdAt: '2026-01-02T00:00:00.000Z',
+  },
+];
 
 export default function App() {
   const [currentRole, setCurrentRole] = useState<Role>('admin');
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('ALL');
   const [adminTab, setAdminTab] = useState<'scoring' | 'attendance' | 'payments' | 'master' | 'reports'>('scoring');
 
-  // Admin Auth & Credentials State
+  // User Accounts & Authentication State
+  const [users, setUsers] = useState<UserAccount[]>(() => {
+    const saved = localStorage.getItem('panahan_user_accounts');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // fallback
+      }
+    }
+    return INITIAL_USER_ACCOUNTS;
+  });
+
+  const [currentUserSession, setCurrentUserSession] = useState<UserAccount | null>(null);
+
   const [adminCredentials, setAdminCredentials] = useState<{ username: string; password: string }>(() => {
     const saved = localStorage.getItem('panahan_admin_creds');
     if (saved) {
@@ -63,11 +97,56 @@ export default function App() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [isUserManagementModalOpen, setIsUserManagementModalOpen] = useState(false);
+
+  const isCoachRole = currentUserSession?.role === 'coach';
 
   const handleUpdateAdminCredentials = (newUsername: string, newPassword: string) => {
     const updated = { username: newUsername, password: newPassword };
     setAdminCredentials(updated);
     localStorage.setItem('panahan_admin_creds', JSON.stringify(updated));
+
+    // Also update in users list if admin account exists
+    setUsers((prev) => {
+      const copy = prev.map((u) =>
+        u.username === adminCredentials.username || u.role === 'admin'
+          ? { ...u, username: newUsername, password: newPassword }
+          : u
+      );
+      localStorage.setItem('panahan_user_accounts', JSON.stringify(copy));
+      return copy;
+    });
+  };
+
+  const handleAddUserAccount = (newUser: Omit<UserAccount, 'id' | 'createdAt'>) => {
+    const account: UserAccount = {
+      ...newUser,
+      id: 'u-' + Date.now(),
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...users, account];
+    setUsers(updated);
+    localStorage.setItem('panahan_user_accounts', JSON.stringify(updated));
+  };
+
+  const handleDeleteUserAccount = (id: string) => {
+    const updated = users.filter((u) => u.id !== id);
+    setUsers(updated);
+    localStorage.setItem('panahan_user_accounts', JSON.stringify(updated));
+  };
+
+  const handleLoginSuccess = (user: UserAccount) => {
+    setCurrentUserSession(user);
+    setIsAdminLoggedIn(true);
+    setIsAdminLoginModalOpen(false);
+    if (user.role === 'coach') {
+      setAdminTab('scoring');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdminLoggedIn(false);
+    setCurrentUserSession(null);
   };
 
   // Application State
@@ -257,9 +336,9 @@ export default function App() {
             </div>
 
             <div className="max-w-md mx-auto space-y-2">
-              <h2 className="text-xl font-black text-white">Mode Admin / Pelatih Terkunci</h2>
+              <h2 className="text-xl font-black text-white">Mode Admin Terkunci</h2>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Silakan login sebagai Admin / Pelatih untuk mengakses dashboard pengelolaan, melakukan entri skor, mengabsen siswa, serta menambah, mengedit, atau menghapus data siswa dan sekolah.
+                Silakan login sebagai Admin untuk mengakses dashboard pengelolaan, melakukan entri skor, mengabsen siswa, serta menambah, mengedit, atau menghapus data siswa dan sekolah.
               </p>
             </div>
 
@@ -276,26 +355,50 @@ export default function App() {
 
         {currentRole === 'admin' && isAdminLoggedIn && (
           <div className="space-y-6">
-            {/* Admin Header Status Bar with Logout & Change Password */}
+            {/* Admin Header Status Bar with Logout, User Mgmt & Change Password */}
             <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                    isCoachRole
+                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                      : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                  }`}
+                >
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black text-white">Sesi Admin ({adminCredentials.username}) Terautentikasi</h3>
-                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                      Aktif
+                    <h3 className="text-sm font-black text-white">
+                      Sesi {isCoachRole ? 'Pelatih' : 'Admin'} ({currentUserSession?.name || currentUserSession?.username || adminCredentials.username}) Terautentikasi
+                    </h3>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        isCoachRole
+                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      }`}
+                    >
+                      {isCoachRole ? 'Akses Terbatas: Scoring & Presensi' : 'Akses Penuh'}
                     </span>
                   </div>
                   <p className="text-xs text-slate-400">
-                    Anda memiliki akses penuh untuk mengedit data siswa, presensi, scoring, dan keuangan.
+                    {isCoachRole
+                      ? 'Anda memiliki akses khusus untuk membuka data scoring panahan dan presensi kehadiran saja.'
+                      : 'Anda memiliki akses penuh untuk mengedit data siswa, presensi, scoring, keuangan, dan kelola user.'}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
+                {!isCoachRole && (
+                  <button
+                    onClick={() => setIsUserManagementModalOpen(true)}
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  >
+                    <UserPlus className="w-4 h-4" /> Kelola & Tambah User
+                  </button>
+                )}
                 <button
                   onClick={() => setIsChangePasswordModalOpen(true)}
                   className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
@@ -303,10 +406,10 @@ export default function App() {
                   <KeyRound className="w-4 h-4 text-sky-400" /> Ubah Akun & Password
                 </button>
                 <button
-                  onClick={() => setIsAdminLoggedIn(false)}
+                  onClick={handleLogout}
                   className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow"
                 >
-                  <LogOut className="w-4 h-4 text-rose-400" /> Logout Admin
+                  <LogOut className="w-4 h-4 text-rose-400" /> Logout
                 </button>
               </div>
             </div>
@@ -380,38 +483,42 @@ export default function App() {
                 <ClipboardCheck className="w-4 h-4" /> Presensi Kehadiran
               </button>
 
-              <button
-                onClick={() => setAdminTab('payments')}
-                className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                  adminTab === 'payments'
-                    ? 'bg-sky-600 text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <CreditCard className="w-4 h-4" /> Keuangan SPP
-              </button>
+              {!isCoachRole && (
+                <>
+                  <button
+                    onClick={() => setAdminTab('payments')}
+                    className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                      adminTab === 'payments'
+                        ? 'bg-sky-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" /> Keuangan SPP
+                  </button>
 
-              <button
-                onClick={() => setAdminTab('master')}
-                className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                  adminTab === 'master'
-                    ? 'bg-purple-600 text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <Users className="w-4 h-4" /> Siswa & Sekolah
-              </button>
+                  <button
+                    onClick={() => setAdminTab('master')}
+                    className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                      adminTab === 'master'
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Users className="w-4 h-4" /> Siswa & Sekolah
+                  </button>
 
-              <button
-                onClick={() => setAdminTab('reports')}
-                className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                  adminTab === 'reports'
-                    ? 'bg-rose-600 text-white shadow-lg'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <FileSpreadsheet className="w-4 h-4" /> Pusat Export Laporan
-              </button>
+                  <button
+                    onClick={() => setAdminTab('reports')}
+                    className={`flex-1 min-w-[130px] py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                      adminTab === 'reports'
+                        ? 'bg-rose-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <FileSpreadsheet className="w-4 h-4" /> Export Laporan
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Admin Active Tab Content */}
@@ -512,10 +619,16 @@ export default function App() {
         isOpen={isAdminLoginModalOpen}
         onClose={() => setIsAdminLoginModalOpen(false)}
         adminCredentials={adminCredentials}
-        onLoginSuccess={() => {
-          setIsAdminLoggedIn(true);
-          setIsAdminLoginModalOpen(false);
-        }}
+        users={users}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      <UserManagementModal
+        isOpen={isUserManagementModalOpen}
+        onClose={() => setIsUserManagementModalOpen(false)}
+        users={users}
+        onAddUser={handleAddUserAccount}
+        onDeleteUser={handleDeleteUserAccount}
       />
 
       <ChangePasswordModal

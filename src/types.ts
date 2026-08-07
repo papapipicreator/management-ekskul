@@ -119,3 +119,12 @@ export interface SystemNotification {
   read: boolean;
   channelSent?: 'WhatsApp' | 'Portal' | 'Email';
 }
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  username: string;
+  password: string;
+  role: 'admin' | 'coach';
+  createdAt: string;
+}

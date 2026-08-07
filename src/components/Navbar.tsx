@@ -91,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Dashboard</span> Pelatih
+              <span className="hidden sm:inline">Dashboard</span> Admin
             </button>
             <button
               onClick={() => onRoleChange('student_parent')}

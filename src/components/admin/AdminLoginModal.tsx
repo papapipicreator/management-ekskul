@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, User, Eye, EyeOff, Sparkles, KeyRound, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { UserAccount } from '../../types';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: () => void;
+  onLoginSuccess: (user: UserAccount) => void;
   adminCredentials?: { username: string; password: string };
+  users?: UserAccount[];
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
@@ -13,6 +15,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onClose,
   onLoginSuccess,
   adminCredentials = { username: 'admin', password: 'admin123' },
+  users = [],
 }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,16 +32,48 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
 
     setTimeout(() => {
       setIsLoading(false);
+      const cleanUsername = username.trim().toLowerCase();
+
+      // Check users list first
+      const foundUser = users.find(
+        (u) => u.username.toLowerCase() === cleanUsername && u.password === password
+      );
+
+      if (foundUser) {
+        onLoginSuccess(foundUser);
+        return;
+      }
+
+      // Check default adminCredentials fallback
       if (
-        username.trim().toLowerCase() === adminCredentials.username.toLowerCase() &&
+        cleanUsername === adminCredentials.username.toLowerCase() &&
         password === adminCredentials.password
       ) {
-        onLoginSuccess();
-      } else if (username.trim().toLowerCase() === 'pelatih' && password === 'pelatih123') {
-        onLoginSuccess();
-      } else {
-        setErrorMsg('Username atau password salah! Silakan periksa kembali kredensial Anda.');
+        onLoginSuccess({
+          id: 'admin-main',
+          name: 'Administrator Utama',
+          username: adminCredentials.username,
+          password: adminCredentials.password,
+          role: 'admin',
+          createdAt: new Date().toISOString(),
+        });
+        return;
       }
+
+      // Check default pelatih fallback
+      if (cleanUsername === 'pelatih' && password === 'pelatih123') {
+        onLoginSuccess({
+          id: 'coach-demo',
+          name: 'Pelatih Panahan',
+          username: 'pelatih',
+          password: 'pelatih123',
+          role: 'coach',
+          createdAt: new Date().toISOString(),
+        });
+        return;
+      }
+
+      setErrorMsg('Username atau password salah! Silakan periksa kembali kredensial Anda.');
     }, 400);
   };
 

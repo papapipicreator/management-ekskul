@@ -35,6 +35,7 @@ export type StudentTab =
 
 interface SidebarProps {
   currentRole: UserRole;
+  loggedUserRole?: 'admin' | 'coach';
   activeAdminTab: AdminTab;
   onSelectAdminTab: (tab: AdminTab) => void;
   activeStudentTab: StudentTab;
@@ -46,6 +47,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentRole,
+  loggedUserRole = 'admin',
   activeAdminTab,
   onSelectAdminTab,
   activeStudentTab,
@@ -56,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const isAdminView = currentRole === 'admin' || currentRole === 'coach';
 
-  const adminNavItems = [
+  const allAdminNavItems = [
     { id: 'overview', label: 'Ringkasan Dashboard', icon: LayoutDashboard },
     { id: 'schools', label: 'Kelola Sekolah', icon: School, badge: schoolCount },
     { id: 'students', label: 'Data Siswa Panahan', icon: Users, badge: studentCount },
@@ -66,6 +68,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'payments', label: 'Keuangan SPP Online', icon: CreditCard, badge: unpaidCount > 0 ? unpaidCount : undefined, badgeColor: 'bg-amber-500' },
     { id: 'reports', label: 'Export Laporan (PDF/Excel)', icon: FileSpreadsheet },
   ];
+
+  const adminNavItems =
+    loggedUserRole === 'coach'
+      ? allAdminNavItems.filter((item) => item.id === 'scoring' || item.id === 'attendance')
+      : allAdminNavItems;
 
   const studentNavItems = [
     { id: 'student_schedule', label: 'Jadwal Latihan Saya', icon: Calendar },
@@ -91,10 +98,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <p className="text-xs font-bold text-slate-100">
-            {isAdminView ? 'Dashboard Backend Pelatih' : 'Portal Siswa & Orang Tua'}
+            {isAdminView
+              ? loggedUserRole === 'coach'
+                ? 'Portal Akses Pelatih'
+                : 'Dashboard Backend Admin'
+              : 'Portal Orang Tua'}
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            {isAdminView ? 'Manajemen Multi-Sekolah' : 'Monitoring & Pembayaran SPP'}
+            {isAdminView
+              ? loggedUserRole === 'coach'
+                ? 'Akses Scoring & Presensi'
+                : 'Manajemen Multi-Sekolah'
+              : 'Monitoring & Pembayaran SPP'}
           </p>
         </div>
 

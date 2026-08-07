@@ -93,7 +93,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               ) : (
                 <Lock className="w-3.5 h-3.5 text-slate-400" />
               )}
-              <span>Admin / Pelatih</span>
+              <span>Admin</span>
             </button>
             <button
               onClick={() => onRoleChange('parent')}
