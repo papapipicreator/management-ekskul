@@ -105,7 +105,7 @@ export interface CoachAttendance {
 
 export interface ArcheryScoreEnd {
   endNumber: number; // 1 to 6
-  arrows: number[]; // array of 6 arrow scores (0 to 10)
+  arrows: (number | string)[]; // array of 6 arrow scores (0 to 10 or 'X')
 }
 
 export interface ArcheryScoreRecord {
@@ -168,5 +168,23 @@ export interface BankAccountConfig {
   accountHolder: string;
   qrisNmid: string;
   instructions?: string;
+}
+
+export type ColorSchemeId = 'emerald' | 'blue' | 'purple' | 'rose' | 'cyan' | 'amber' | 'light';
+
+export interface ColorSchemeConfig {
+  id: ColorSchemeId;
+  name: string;
+  badge: string;
+  description: string;
+  primaryColorHex: string;
+  accentColorHex: string;
+  bgMode: 'dark' | 'light';
+  bgClass: string;
+  textClass: string;
+  primaryBgClass: string;
+  primaryHoverBgClass: string;
+  primaryTextClass: string;
+  primaryBorderClass: string;
 }
 

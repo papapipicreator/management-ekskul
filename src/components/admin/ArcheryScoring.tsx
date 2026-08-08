@@ -38,19 +38,27 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
   const [coachNotes, setCoachNotes] = useState<string>('Grouping sangat baik pada lingkaran emas dan merah. Pertahankan ritme release.');
 
   // Ends scoring state (6 Ends, each 6 arrows)
-  const [ends, setEnds] = useState<number[][]>([
-    [10, 9, 9, 8, 8, 7], // End 1
-    [10, 10, 9, 9, 8, 8], // End 2
+  const [ends, setEnds] = useState<(number | string)[][]>([
+    ['X', 10, 9, 8, 8, 7], // End 1
+    ['X', 'X', 9, 9, 8, 8], // End 2
     [10, 9, 8, 8, 7, 7], // End 3
-    [10, 10, 10, 9, 8, 7], // End 4
+    ['X', 10, 10, 9, 8, 7], // End 4
     [9, 9, 8, 8, 7, 6], // End 5
-    [10, 9, 9, 8, 8, 8], // End 6
+    ['X', 9, 9, 8, 8, 8], // End 6
   ]);
 
   const [activeEndIndex, setActiveEndIndex] = useState<number>(0);
 
+  // Helper to convert arrow score (including 'X') to numeric points
+  const getArrowNumericValue = (val: number | string): number => {
+    if (val === 'X' || val === 'x') return 10;
+    if (typeof val === 'number') return val;
+    const num = parseInt(String(val), 10);
+    return isNaN(num) ? 0 : num;
+  };
+
   // Update score for arrow in current end
-  const handleScoreInput = (value: number) => {
+  const handleScoreInput = (value: number | string) => {
     const newEnds = [...ends];
     const currentEnd = [...newEnds[activeEndIndex]];
 
@@ -72,11 +80,11 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
 
   // Score calculations
   const allArrows = ends.flat();
-  const totalScore = allArrows.reduce((acc, curr) => acc + curr, 0);
+  const totalScore = allArrows.reduce((acc, curr) => acc + getArrowNumericValue(curr), 0);
   const totalArrowsCount = allArrows.length;
   const maxPossibleScore = 360; // 6 ends * 6 arrows * 10
-  const tenCount = allArrows.filter((a) => a === 10).length;
-  const xCount = Math.floor(tenCount * 0.4); // simulated X count
+  const xCount = allArrows.filter((a) => a === 'X' || a === 'x').length;
+  const tenCount = allArrows.filter((a) => a === 10 || a === '10' || a === 'X' || a === 'x').length;
   const averageArrow = totalArrowsCount > 0 ? totalScore / totalArrowsCount : 0;
 
   const handleSave = () => {
@@ -244,19 +252,44 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
             </div>
 
             {/* Target Face Graphical Representation */}
-            <div className="pt-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">
+            <div className="pt-2 space-y-3">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
                 Visual Cincin Sasaran World Archery
               </p>
-              <div className="w-56 h-56 mx-auto rounded-full bg-yellow-400 border-8 border-yellow-500 flex items-center justify-center shadow-xl relative">
-                <div className="w-44 h-44 rounded-full bg-red-600 border-4 border-red-700 flex items-center justify-center">
+              
+              {/* Target Face Rings: Outer White -> Black -> Blue -> Red -> Inner Yellow */}
+              <div className="w-56 h-56 mx-auto rounded-full bg-white border-4 border-slate-300 flex items-center justify-center shadow-xl relative transition-transform hover:scale-105">
+                {/* Hitam Ring (3-4) */}
+                <div className="w-44 h-44 rounded-full bg-slate-950 border-4 border-slate-900 flex items-center justify-center">
+                  {/* Biru Ring (5-6) */}
                   <div className="w-32 h-32 rounded-full bg-sky-500 border-4 border-sky-600 flex items-center justify-center">
-                    <div className="w-20 h-20 rounded-full bg-slate-900 border-4 border-slate-950 flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center">
-                        <span className="text-xs font-black text-slate-900">+</span>
+                    {/* Merah Ring (7-8) */}
+                    <div className="w-20 h-20 rounded-full bg-red-600 border-4 border-red-700 flex items-center justify-center">
+                      {/* Kuning / Emas Ring Paling Dalam (9-10 & X) */}
+                      <div className="w-10 h-10 rounded-full bg-yellow-400 border-2 border-yellow-500 flex items-center justify-center shadow-inner">
+                        <span className="text-xs font-black text-slate-950">+</span>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Target Ring Legend */}
+              <div className="grid grid-cols-5 gap-1 text-[9px] font-bold text-center pt-1">
+                <div className="bg-yellow-400 text-slate-950 py-1 px-0.5 rounded-md border border-yellow-500">
+                  <span>9-10 (Kuning)</span>
+                </div>
+                <div className="bg-red-600 text-white py-1 px-0.5 rounded-md border border-red-700">
+                  <span>7-8 (Merah)</span>
+                </div>
+                <div className="bg-sky-500 text-white py-1 px-0.5 rounded-md border border-sky-600">
+                  <span>5-6 (Biru)</span>
+                </div>
+                <div className="bg-slate-950 text-slate-200 py-1 px-0.5 rounded-md border border-slate-800">
+                  <span>3-4 (Hitam)</span>
+                </div>
+                <div className="bg-slate-100 text-slate-900 py-1 px-0.5 rounded-md border border-slate-300">
+                  <span>1-2 (Putih)</span>
                 </div>
               </div>
             </div>
@@ -302,7 +335,7 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
               </div>
               <div className="grid grid-cols-6 gap-2">
                 {[0, 1, 2, 3, 4, 5].map((idx) => {
-                  const endSum = ends[idx]?.reduce((a, b) => a + b, 0) || 0;
+                  const endSum = ends[idx]?.reduce((a, b) => a + getArrowNumericValue(b), 0) || 0;
                   const isCurrent = activeEndIndex === idx;
                   return (
                     <button
@@ -332,12 +365,18 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
                 {[0, 1, 2, 3, 4, 5].map((slotIdx) => {
                   const val = ends[activeEndIndex]?.[slotIdx];
                   let badgeBg = 'bg-slate-900 border-slate-700 text-slate-500';
+                  let displayVal = '-';
                   if (val !== undefined) {
-                    if (val === 10) badgeBg = 'bg-yellow-500 text-slate-950 font-black border-yellow-400';
-                    else if (val >= 7) badgeBg = 'bg-red-600 text-white font-bold border-red-500';
-                    else if (val >= 5) badgeBg = 'bg-sky-500 text-white font-bold border-sky-400';
-                    else if (val >= 3) badgeBg = 'bg-slate-950 text-white font-bold border-slate-800';
-                    else badgeBg = 'bg-slate-200 text-slate-900 font-bold border-white';
+                    const numVal = getArrowNumericValue(val);
+                    displayVal = val === 'X' ? 'X' : val === 0 ? 'M' : String(val);
+
+                    if (val === 'X') badgeBg = 'bg-amber-400 text-slate-950 font-black border-amber-300 ring-2 ring-amber-400/50';
+                    else if (numVal >= 9) badgeBg = 'bg-yellow-400 text-slate-950 font-black border-yellow-500';
+                    else if (numVal >= 7) badgeBg = 'bg-red-600 text-white font-bold border-red-700';
+                    else if (numVal >= 5) badgeBg = 'bg-sky-500 text-white font-bold border-sky-600';
+                    else if (numVal >= 3) badgeBg = 'bg-slate-950 text-slate-100 font-bold border-slate-800';
+                    else if (numVal >= 1) badgeBg = 'bg-white text-slate-950 font-bold border-slate-300';
+                    else badgeBg = 'bg-slate-700 text-slate-300 font-bold border-slate-600';
                   }
 
                   return (
@@ -345,7 +384,7 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
                       key={slotIdx}
                       className={`w-10 h-10 rounded-xl border flex items-center justify-center text-sm shadow ${badgeBg}`}
                     >
-                      {val !== undefined ? (val === 0 ? 'M' : val) : '-'}
+                      {displayVal}
                     </div>
                   );
                 })}
@@ -355,25 +394,31 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
             {/* Numeric Keypad Buttons */}
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                Klik Skor Anak Panah:
+                Klik Skor Anak Panah (Sesuai Warna Cincin):
               </span>
               <div className="grid grid-cols-6 gap-2">
-                {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0].map((scoreVal) => (
+                {(['X', 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0] as (number | string)[]).map((scoreVal) => (
                   <button
-                    key={scoreVal}
+                    key={String(scoreVal)}
                     type="button"
                     onClick={() => handleScoreInput(scoreVal)}
                     className={`py-3 rounded-xl border text-sm font-bold transition-all shadow ${
-                      scoreVal >= 9
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500 hover:text-slate-950'
-                        : scoreVal >= 7
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-600 hover:text-white'
-                        : scoreVal >= 5
+                      scoreVal === 'X'
+                        ? 'bg-amber-400 text-slate-950 font-black border-amber-300 hover:bg-amber-300 hover:shadow-amber-500/20 shadow-md ring-1 ring-amber-400/50'
+                        : typeof scoreVal === 'number' && scoreVal >= 9
+                        ? 'bg-yellow-400/20 text-yellow-300 border-yellow-500/40 hover:bg-yellow-400 hover:text-slate-950'
+                        : typeof scoreVal === 'number' && scoreVal >= 7
+                        ? 'bg-red-500/20 text-red-300 border-red-500/40 hover:bg-red-600 hover:text-white'
+                        : typeof scoreVal === 'number' && scoreVal >= 5
                         ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500 hover:text-white'
-                        : 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700'
+                        : typeof scoreVal === 'number' && scoreVal >= 3
+                        ? 'bg-slate-950/80 text-slate-200 border-slate-700 hover:bg-slate-900 hover:text-white'
+                        : typeof scoreVal === 'number' && scoreVal >= 1
+                        ? 'bg-slate-100/20 text-slate-100 border-slate-300/40 hover:bg-white hover:text-slate-950'
+                        : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
                     }`}
                   >
-                    {scoreVal === 0 ? 'M (Miss)' : scoreVal}
+                    {scoreVal === 'X' ? 'X (10)' : scoreVal === 0 ? 'M (Miss)' : scoreVal}
                   </button>
                 ))}
               </div>

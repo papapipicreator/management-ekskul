@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Target,
   ClipboardCheck,
@@ -14,9 +14,12 @@ import {
   CheckCircle2,
   Clock,
   QrCode,
+  Palette,
 } from 'lucide-react';
-import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig } from './types';
+import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig, ColorSchemeId } from './types';
 import { StorageService } from './services/storageService';
+import { COLOR_SCHEMES } from './data/colorSchemes';
+import { ColorSchemeModal } from './components/admin/ColorSchemeModal';
 import {
   INITIAL_SCHOOLS,
   INITIAL_STUDENTS,
@@ -99,6 +102,22 @@ export default function App() {
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [isUserManagementModalOpen, setIsUserManagementModalOpen] = useState(false);
+  const [isColorSchemeModalOpen, setIsColorSchemeModalOpen] = useState(false);
+
+  const [currentColorScheme, setCurrentColorScheme] = useState<ColorSchemeId>(() => {
+    const saved = localStorage.getItem('panahan_color_scheme');
+    if (saved && ['emerald', 'blue', 'purple', 'rose', 'cyan', 'amber', 'light'].includes(saved)) {
+      return saved as ColorSchemeId;
+    }
+    return 'emerald';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('panahan_color_scheme', currentColorScheme);
+    document.documentElement.setAttribute('data-theme', currentColorScheme);
+  }, [currentColorScheme]);
+
+  const currentSchemeConfig = COLOR_SCHEMES.find((s) => s.id === currentColorScheme) || COLOR_SCHEMES[0];
 
   const isCoachRole = currentUserSession?.role === 'coach';
 
@@ -314,7 +333,7 @@ export default function App() {
   const filteredPayments = selectedSchoolId === 'ALL' ? payments : payments.filter((p) => p.schoolId === selectedSchoolId);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-slate-950">
+    <div className={`min-h-screen ${currentSchemeConfig.bgClass} ${currentSchemeConfig.textClass} font-sans antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-slate-950`}>
       {/* Top Header Navbar */}
       <HeaderNavbar
         currentRole={currentRole}
@@ -333,6 +352,7 @@ export default function App() {
         isAdminLoggedIn={isAdminLoggedIn}
         onAdminLoginClick={() => setIsAdminLoginModalOpen(true)}
         onAdminLogout={() => setIsAdminLoggedIn(false)}
+        onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
@@ -414,6 +434,13 @@ export default function App() {
                     <UserPlus className="w-4 h-4" /> Kelola & Tambah User
                   </button>
                 )}
+                <button
+                  onClick={() => setIsColorSchemeModalOpen(true)}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white border border-amber-500/30 hover:border-amber-500/50 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  title="Ubah Skema Warna Tampilan"
+                >
+                  <Palette className="w-4 h-4 text-amber-400" /> Skema Warna
+                </button>
                 <button
                   onClick={() => setIsChangePasswordModalOpen(true)}
                   className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
@@ -672,6 +699,13 @@ export default function App() {
         notifications={notifications}
         schools={schools}
         onSendNotification={handleSendNotification}
+      />
+
+      <ColorSchemeModal
+        isOpen={isColorSchemeModalOpen}
+        onClose={() => setIsColorSchemeModalOpen(false)}
+        currentColorScheme={currentColorScheme}
+        onSelectColorScheme={setCurrentColorScheme}
       />
     </div>
   );

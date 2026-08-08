@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users } from 'lucide-react';
+import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette } from 'lucide-react';
 import { Role, School } from '../../types';
 
 interface HeaderNavbarProps {
@@ -14,6 +14,7 @@ interface HeaderNavbarProps {
   isAdminLoggedIn?: boolean;
   onAdminLoginClick?: () => void;
   onAdminLogout?: () => void;
+  onOpenColorSchemeModal?: () => void;
 }
 
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
@@ -28,6 +29,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   isAdminLoggedIn = false,
   onAdminLoginClick,
   onAdminLogout,
+  onOpenColorSchemeModal,
 }) => {
   return (
     <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
@@ -145,6 +147,16 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                 </div>
               )}
             </>
+          )}
+
+          {onOpenColorSchemeModal && (
+            <button
+              onClick={onOpenColorSchemeModal}
+              className="p-2 bg-slate-950 hover:bg-slate-800 text-amber-400 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 rounded-xl relative transition-all"
+              title="Pilih Skema Warna Tampilan"
+            >
+              <Palette className="w-4 h-4" />
+            </button>
           )}
 
           <button

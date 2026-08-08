@@ -122,12 +122,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
         </div>
 
-        {/* Decorative Archery Target */}
-        <div className="absolute -right-8 -bottom-10 w-52 h-52 rounded-full border-8 border-emerald-500/10 flex items-center justify-center pointer-events-none opacity-40 md:opacity-100">
-          <div className="w-40 h-40 rounded-full border-8 border-rose-500/20 flex items-center justify-center">
-            <div className="w-28 h-28 rounded-full border-8 border-sky-500/30 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500/40 flex items-center justify-center">
-                <Target className="w-8 h-8 text-amber-400" />
+        {/* Decorative World Archery Target */}
+        <div className="absolute -right-8 -bottom-10 w-52 h-52 rounded-full border-8 border-white/20 flex items-center justify-center pointer-events-none opacity-40 md:opacity-100">
+          <div className="w-40 h-40 rounded-full border-8 border-slate-900/60 flex items-center justify-center">
+            <div className="w-28 h-28 rounded-full border-8 border-sky-500/40 flex items-center justify-center">
+              <div className="w-18 h-18 rounded-full border-8 border-red-500/50 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-yellow-400/60 flex items-center justify-center shadow-inner">
+                  <Target className="w-5 h-5 text-slate-950" />
+                </div>
               </div>
             </div>
           </div>
