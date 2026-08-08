@@ -1,6 +1,6 @@
 export type Role = 'admin' | 'coach' | 'student' | 'parent';
 
-export type BowType = 'Standard Bow' | 'Recurve' | 'Barebow' | 'Compound';
+export type BowType = 'Standard Bow' | 'Recurve' | 'Barebow' | 'Compound' | 'Horsebow';
 export type TargetDistance = '5m' | '7m' | '10m' | '15m' | '18m' | '20m' | '30m' | '50m';
 
 export interface School {
@@ -128,3 +128,12 @@ export interface UserAccount {
   role: 'admin' | 'coach';
   createdAt: string;
 }
+
+export interface BankAccountConfig {
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  qrisNmid: string;
+  instructions?: string;
+}
+

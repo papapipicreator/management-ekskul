@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Target, Award, CreditCard, Bell, Download, FileSpreadsheet, Sparkles, CheckCircle2 } from 'lucide-react';
-import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification } from '../../types';
+import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, BankAccountConfig } from '../../types';
 import { exportScoresToPdf, downloadInvoicePdf } from '../../utils/exportUtils';
 import { SppPaymentModal } from '../student/SppPaymentModal';
 
@@ -12,6 +12,7 @@ interface ParentPortalProps {
   notifications: SystemNotification[];
   onPaySpp: (paymentId: string, method: string) => void;
   selectedSchoolId?: string;
+  bankConfig?: BankAccountConfig;
 }
 
 export const ParentPortal: React.FC<ParentPortalProps> = ({
@@ -22,6 +23,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
   notifications,
   onPaySpp,
   selectedSchoolId = 'ALL',
+  bankConfig,
 }) => {
   const filteredStudents =
     selectedSchoolId && selectedSchoolId !== 'ALL'
@@ -229,6 +231,7 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
           onClose={() => setIsPaymentModalOpen(false)}
           payment={selectedPayment}
           onPaymentSuccess={onPaySpp}
+          bankConfig={bankConfig}
         />
       )}
     </div>

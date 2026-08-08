@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, CreditCard, QrCode, Building, CheckCircle2, Copy, Sparkles, Download, ArrowRight } from 'lucide-react';
-import { SppPayment } from '../../types';
+import { SppPayment, BankAccountConfig } from '../../types';
 import { downloadInvoicePdf } from '../../utils/exportUtils';
 
 interface SppPaymentModalProps {
@@ -8,6 +8,7 @@ interface SppPaymentModalProps {
   onClose: () => void;
   payment: SppPayment;
   onPaymentSuccess: (paymentId: string, method: string) => void;
+  bankConfig?: BankAccountConfig;
 }
 
 export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
@@ -15,6 +16,13 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
   onClose,
   payment,
   onPaymentSuccess,
+  bankConfig = {
+    bankName: 'Bank Syariah Indonesia (BSI)',
+    accountNumber: '7829102938',
+    accountHolder: 'PanahanEdu Official',
+    qrisNmid: 'ID10293847120 - PanahanEdu Official',
+    instructions: 'Harap cantumkan Nama Siswa & Bulan Tagihan saat melakukan transfer.',
+  },
 }) => {
   const [method, setMethod] = useState<'qris' | 'bank' | 'ewallet'>('qris');
   const [copied, setCopied] = useState(false);
@@ -24,7 +32,7 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
   if (!isOpen) return null;
 
   const handleCopyVa = () => {
-    navigator.clipboard.writeText('8801298471203948');
+    navigator.clipboard.writeText(bankConfig.accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -34,10 +42,16 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
-      const methodName = method === 'qris' ? 'QRIS Instant Payment' : method === 'bank' ? 'Transfer Bank BCA' : 'Gopay / E-Wallet';
+      const methodName =
+        method === 'qris'
+          ? 'QRIS Instant Payment'
+          : method === 'bank'
+          ? `Transfer Bank (${bankConfig.bankName})`
+          : 'Gopay / E-Wallet';
       onPaymentSuccess(payment.id, methodName);
     }, 1500);
   };
+
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -124,33 +138,53 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
 
               {/* Method Dynamic Display */}
               {method === 'qris' && (
-                <div className="bg-white p-4 rounded-2xl text-center text-slate-900 space-y-2">
+                <div className="bg-white p-4 rounded-2xl text-center text-slate-900 space-y-2 shadow">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                    Scan Kode QRIS dengan M-Banking / GoPay / OVO
+                    Scan Kode QRIS Resmi PanahanEdu
                   </p>
-                  <div className="w-40 h-40 mx-auto bg-slate-900 rounded-xl p-2 flex items-center justify-center">
+                  <div className="w-40 h-40 mx-auto bg-slate-900 rounded-xl p-2 flex items-center justify-center border border-emerald-500/30 shadow-inner">
                     <QrCode className="w-32 h-32 text-emerald-400" />
                   </div>
-                  <p className="text-[10px] text-slate-500">NMID: ID10293847120 - PanahanEdu Official</p>
+                  <p className="text-[10px] font-mono text-slate-600 bg-slate-100 py-1 px-2 rounded-lg inline-block">
+                    NMID: {bankConfig.qrisNmid}
+                  </p>
                 </div>
               )}
 
               {method === 'bank' && (
-                <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-3 text-xs">
+                <div className="bg-slate-800/90 p-4 rounded-2xl border border-sky-500/30 space-y-3 text-xs shadow-sm">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-slate-300">Bank Virtual Account:</span>
-                    <span className="text-sky-400 font-bold">BCA Virtual Account</span>
+                    <span className="font-semibold text-slate-300">Bank Tujuan Transfer:</span>
+                    <span className="text-sky-400 font-bold bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20">
+                      {bankConfig.bankName}
+                    </span>
                   </div>
-                  <div className="bg-slate-950 p-3 rounded-xl flex items-center justify-between border border-slate-800 font-mono text-sm">
-                    <span>8801 2984 7120 3948</span>
-                    <button
-                      onClick={handleCopyVa}
-                      className="p-1 text-slate-400 hover:text-emerald-400 flex items-center gap-1 text-[10px]"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      {copied ? 'Tersalin' : 'Salin'}
-                    </button>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Nomor Rekening Resmi:</span>
+                    <div className="bg-slate-950 p-3 rounded-xl flex items-center justify-between border border-slate-800 font-mono text-sm text-emerald-400 font-bold">
+                      <span>{bankConfig.accountNumber}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyVa}
+                        className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-emerald-400 rounded-lg flex items-center gap-1 text-[10px] transition-all font-sans font-medium"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        {copied ? 'Tersalin!' : 'Salin Rekening'}
+                      </button>
+                    </div>
                   </div>
+
+                  <div className="flex justify-between items-center pt-1 text-[11px] border-t border-slate-700/80">
+                    <span className="text-slate-400">Atas Nama (A.N.):</span>
+                    <span className="font-bold text-slate-100">{bankConfig.accountHolder}</span>
+                  </div>
+
+                  {bankConfig.instructions && (
+                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[10px] text-amber-300/90 leading-tight">
+                      📌 <strong>Catatan:</strong> {bankConfig.instructions}
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -14,9 +14,13 @@ import {
   Sparkles,
   ShieldCheck,
   AlertCircle,
+  Building,
+  QrCode,
+  Settings2,
 } from 'lucide-react';
-import { SppPayment, Student, School, SystemNotification } from '../../types';
+import { SppPayment, Student, School, SystemNotification, BankAccountConfig } from '../../types';
 import { exportPaymentsToPdf, exportPaymentsToExcel, downloadInvoicePdf, downloadSchoolInvoicePdf } from '../../utils/exportUtils';
+import { BankConfigModal } from './BankConfigModal';
 
 interface PaymentManagementProps {
   payments: SppPayment[];
@@ -25,6 +29,8 @@ interface PaymentManagementProps {
   onUpdatePaymentStatus: (id: string, status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi') => void;
   onSendNotification: (notif: SystemNotification) => void;
   selectedSchoolId: string;
+  bankConfig: BankAccountConfig;
+  onUpdateBankConfig: (config: BankAccountConfig) => void;
 }
 
 export const PaymentManagement: React.FC<PaymentManagementProps> = ({
@@ -34,11 +40,14 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
   onUpdatePaymentStatus,
   onSendNotification,
   selectedSchoolId,
+  bankConfig,
+  onUpdateBankConfig,
 }) => {
   const [activeTab, setActiveTab] = useState<'spp_siswa' | 'school_honor'>('spp_siswa');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [search, setSearch] = useState<string>('');
   const [sentNoticeId, setSentNoticeId] = useState<string | null>(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   // State to track school invoice payment status & sessions count
   const [schoolInvoicePaid, setSchoolInvoicePaid] = useState<Record<string, boolean>>({
@@ -134,7 +143,13 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsBankModalOpen(true)}
+              className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-sky-950/50"
+            >
+              <Settings2 className="w-3.5 h-3.5 text-sky-200" /> Ubah Rekening SPP & QRIS
+            </button>
             <button
               onClick={() => exportPaymentsToPdf(filteredPayments, 'Agustus 2026')}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all"
@@ -147,6 +162,32 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> Export Excel
             </button>
+          </div>
+        </div>
+
+        {/* Bank & QRIS Active Banner */}
+        <div className="bg-slate-950 p-3.5 rounded-2xl border border-sky-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-xl">
+              <Building className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-slate-400 text-[11px]">
+                Rekening Pembayaran SPP Terkoneksi Portal Orang Tua:
+              </p>
+              <p className="text-white font-bold flex items-center gap-2">
+                <span>{bankConfig.bankName}</span>
+                <span className="font-mono text-emerald-400 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  {bankConfig.accountNumber}
+                </span>
+                <span className="text-slate-400 font-normal">a.n. {bankConfig.accountHolder}</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+            <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+            <span>NMID QRIS: <strong className="text-slate-200 font-mono">{bankConfig.qrisNmid}</strong></span>
           </div>
         </div>
 
@@ -555,6 +596,14 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
           </div>
         </div>
       )}
+
+      {/* Bank & QRIS Config Modal */}
+      <BankConfigModal
+        isOpen={isBankModalOpen}
+        onClose={() => setIsBankModalOpen(false)}
+        bankConfig={bankConfig}
+        onSaveConfig={onUpdateBankConfig}
+      />
     </div>
   );
 };

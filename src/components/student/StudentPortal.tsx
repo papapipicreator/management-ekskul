@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Target, Award, CreditCard, QrCode, Calendar, CheckCircle2, TrendingUp, Download, Sparkles, AlertCircle } from 'lucide-react';
-import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule } from '../../types';
+import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule, BankAccountConfig } from '../../types';
 import { SppPaymentModal } from './SppPaymentModal';
 
 interface StudentPortalProps {
@@ -10,6 +10,7 @@ interface StudentPortalProps {
   payments: SppPayment[];
   schedules: Schedule[];
   onPaySpp: (paymentId: string, method: string) => void;
+  bankConfig?: BankAccountConfig;
 }
 
 export const StudentPortal: React.FC<StudentPortalProps> = ({
@@ -19,6 +20,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   payments,
   schedules,
   onPaySpp,
+  bankConfig,
 }) => {
   const [selectedPayment, setSelectedPayment] = useState<SppPayment | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -205,6 +207,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           onClose={() => setIsPaymentModalOpen(false)}
           payment={selectedPayment}
           onPaymentSuccess={onPaySpp}
+          bankConfig={bankConfig}
         />
       )}
     </div>

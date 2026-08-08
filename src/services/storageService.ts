@@ -1,12 +1,21 @@
 import {
   School, Coach, Student, Schedule, StudentAttendance,
-  CoachAttendance, ArcheryScoreRecord, SppPayment, SystemNotification
+  CoachAttendance, ArcheryScoreRecord, SppPayment, SystemNotification,
+  BankAccountConfig
 } from '../types';
 import {
   INITIAL_SCHOOLS, INITIAL_COACHES, INITIAL_STUDENTS, INITIAL_SCHEDULES,
   INITIAL_STUDENT_ATTENDANCE, INITIAL_COACH_ATTENDANCE, INITIAL_SCORES,
   INITIAL_PAYMENTS, INITIAL_NOTIFICATIONS
 } from '../data/initialData';
+
+export const INITIAL_BANK_CONFIG: BankAccountConfig = {
+  bankName: 'Bank Syariah Indonesia (BSI)',
+  accountNumber: '7829102938',
+  accountHolder: 'PanahanEdu Official',
+  qrisNmid: 'ID10293847120 - PanahanEdu Official',
+  instructions: 'Harap cantumkan Nama Siswa & Bulan Tagihan saat melakukan transfer.',
+};
 
 const KEYS = {
   SCHOOLS: 'panahan_schools_v1',
@@ -18,6 +27,7 @@ const KEYS = {
   SCORES: 'panahan_scores_v1',
   PAYMENTS: 'panahan_payments_v1',
   NOTIFICATIONS: 'panahan_notifications_v1',
+  BANK_CONFIG: 'panahan_bank_config_v1',
 };
 
 function getItem<T>(key: string, defaultValue: T): T {
@@ -66,6 +76,9 @@ export const StorageService = {
   getNotifications: (): SystemNotification[] => getItem(KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS),
   saveNotifications: (notifs: SystemNotification[]) => setItem(KEYS.NOTIFICATIONS, notifs),
 
+  getBankConfig: (): BankAccountConfig => getItem(KEYS.BANK_CONFIG, INITIAL_BANK_CONFIG),
+  saveBankConfig: (config: BankAccountConfig) => setItem(KEYS.BANK_CONFIG, config),
+
   resetAllData: () => {
     localStorage.removeItem(KEYS.SCHOOLS);
     localStorage.removeItem(KEYS.COACHES);
@@ -76,5 +89,6 @@ export const StorageService = {
     localStorage.removeItem(KEYS.SCORES);
     localStorage.removeItem(KEYS.PAYMENTS);
     localStorage.removeItem(KEYS.NOTIFICATIONS);
+    localStorage.removeItem(KEYS.BANK_CONFIG);
   }
 };

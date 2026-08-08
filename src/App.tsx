@@ -15,7 +15,8 @@ import {
   Clock,
   QrCode,
 } from 'lucide-react';
-import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount } from './types';
+import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig } from './types';
+import { StorageService } from './services/storageService';
 import {
   INITIAL_SCHOOLS,
   INITIAL_STUDENTS,
@@ -158,6 +159,14 @@ export default function App() {
   const [scores, setScores] = useState<ArcheryScoreRecord[]>(INITIAL_SCORES);
   const [payments, setPayments] = useState<SppPayment[]>(INITIAL_PAYMENTS);
   const [notifications, setNotifications] = useState<SystemNotification[]>(INITIAL_NOTIFICATIONS);
+
+  // Bank Account & QRIS Config State
+  const [bankConfig, setBankConfig] = useState<BankAccountConfig>(() => StorageService.getBankConfig());
+
+  const handleUpdateBankConfig = (newConfig: BankAccountConfig) => {
+    setBankConfig(newConfig);
+    StorageService.saveBankConfig(newConfig);
+  };
 
   // Modals
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
@@ -554,6 +563,8 @@ export default function App() {
                 onUpdatePaymentStatus={handleUpdatePaymentStatus}
                 onSendNotification={handleSendNotification}
                 selectedSchoolId={selectedSchoolId}
+                bankConfig={bankConfig}
+                onUpdateBankConfig={handleUpdateBankConfig}
               />
             )}
 
@@ -598,6 +609,7 @@ export default function App() {
             payments={payments}
             schedules={schedules}
             onPaySpp={handlePaySppSuccess}
+            bankConfig={bankConfig}
           />
         )}
 
@@ -610,6 +622,7 @@ export default function App() {
             notifications={notifications}
             onPaySpp={handlePaySppSuccess}
             selectedSchoolId={selectedSchoolId}
+            bankConfig={bankConfig}
           />
         )}
       </main>

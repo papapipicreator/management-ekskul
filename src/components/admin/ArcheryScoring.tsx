@@ -218,6 +218,7 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
                   <option value="Recurve">Recurve</option>
                   <option value="Barebow">Barebow</option>
                   <option value="Compound">Compound</option>
+                  <option value="Horsebow">Horsebow</option>
                 </select>
               </div>
 

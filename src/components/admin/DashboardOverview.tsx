@@ -165,7 +165,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </div>
           </div>
           <p className="text-2xl font-bold text-white">{totalStudents}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Standard Bow, Recurve, Barebow</p>
+          <p className="text-[11px] text-slate-400 mt-1">Standard Bow, Recurve, Barebow, Horsebow, Compound</p>
         </div>
 
         {/* Card 3: Kehadiran */}
