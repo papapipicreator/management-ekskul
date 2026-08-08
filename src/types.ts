@@ -1,4 +1,5 @@
 export type Role = 'admin' | 'coach' | 'student' | 'parent';
+export type UserRole = Role;
 
 export type BowType = 'Standard Bow' | 'Recurve' | 'Barebow' | 'Compound' | 'Horsebow';
 export type TargetDistance = '5m' | '7m' | '10m' | '15m' | '18m' | '20m' | '30m' | '50m';
@@ -8,52 +9,67 @@ export interface School {
   name: string;
   code: string;
   address: string;
-  contactPerson: string;
+  contactPerson?: string;
   phone: string;
   activeStudentsCount: number;
   monthlyFeePerStudent?: number;
   coachHonorPerSession?: number;
   financialModel?: 'monthly_fee' | 'coach_honor';
+  headCoach?: string;
+  practiceDays?: string | string[];
 }
 
 export interface Student {
   id: string;
   name: string;
-  nisn: string;
+  nisn?: string;
+  nis?: string;
   schoolId: string;
   schoolName: string;
-  grade: string;
+  grade?: string;
+  classGrade?: string;
+  gender?: string;
   parentName: string;
   parentPhone: string;
+  parentEmail?: string;
   bowType: BowType;
   targetDistance: TargetDistance;
-  qrCodeUrl: string;
-  joinDate: string;
-  status: 'Aktif' | 'Cuti' | 'Alumni';
+  qrCodeUrl?: string;
+  joinDate?: string;
+  joinedDate?: string;
+  status?: 'Aktif' | 'Cuti' | 'Alumni';
   avatarUrl?: string;
 }
 
 export interface Coach {
   id: string;
   name: string;
-  licenseNumber: string;
+  licenseNumber?: string;
   assignedSchools: string[];
   phone: string;
-  roleTitle: string;
+  roleTitle?: string;
+  specialization?: string;
+  email?: string;
   avatarUrl?: string;
 }
 
 export interface Schedule {
   id: string;
+  title?: string;
   schoolId: string;
   schoolName: string;
-  dayOfWeek: string;
-  timeSlot: string;
+  dayOfWeek?: string;
+  timeSlot?: string;
+  timeStart?: string;
+  timeEnd?: string;
   location: string;
   coachId: string;
   coachName: string;
   date: string;
-  targetCount: number;
+  targetCount?: number;
+  targetFocus?: string;
+  targetDistance?: string;
+  notes?: string;
 }
 
 export interface StudentAttendance {
@@ -62,11 +78,28 @@ export interface StudentAttendance {
   studentId: string;
   studentName: string;
   schoolId: string;
-  schoolName: string;
+  schoolName?: string;
   date: string;
-  timeIn: string;
+  timeIn?: string;
+  checkInTime?: string;
   status: 'Hadir' | 'Izin' | 'Sakit' | 'Alpha';
-  method: 'Scan QR' | 'Manual Pelatih';
+  method?: 'Scan QR' | 'Manual Pelatih';
+  notes?: string;
+}
+
+export interface CoachAttendance {
+  id: string;
+  coachId: string;
+  coachName: string;
+  scheduleId: string;
+  schoolId?: string;
+  schoolName?: string;
+  date: string;
+  timeIn?: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  locationNotes?: string;
+  status: 'Hadir' | 'Izin' | 'Sakit' | 'Alpha';
   notes?: string;
 }
 
@@ -114,7 +147,7 @@ export interface SystemNotification {
   title: string;
   message: string;
   timestamp: string;
-  type: 'attendance' | 'scoring' | 'payment' | 'announcement';
+  type: 'attendance' | 'scoring' | 'payment' | 'announcement' | 'schedule' | 'report';
   targetSchoolId?: string;
   read: boolean;
   channelSent?: 'WhatsApp' | 'Portal' | 'Email';

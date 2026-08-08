@@ -8,6 +8,7 @@ interface AdminLoginModalProps {
   onLoginSuccess: (user: UserAccount) => void;
   adminCredentials?: { username: string; password: string };
   users?: UserAccount[];
+  onSelectParentRole?: () => void;
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
@@ -16,6 +17,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
   onLoginSuccess,
   adminCredentials = { username: 'admin', password: 'admin123' },
   users = [],
+  onSelectParentRole,
 }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -164,15 +166,29 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
         </form>
 
         {/* Security Footer Notice */}
-        <div className="border-t border-slate-800 pt-4 flex items-center justify-between text-[11px] text-slate-500">
+        <div className="border-t border-slate-800 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
           <span>Hak akses terautentikasi</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
-          >
-            Kembali ke Portal Publik
-          </button>
+          <div className="flex items-center gap-3">
+            {onSelectParentRole && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onSelectParentRole();
+                }}
+                className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
+              >
+                Akses Sebagai Orang Tua
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              Kembali
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock } from 'lucide-react';
+import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users } from 'lucide-react';
 import { Role, School } from '../../types';
 
 interface HeaderNavbarProps {
@@ -129,12 +129,20 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={onAdminLoginClick}
-                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
-                >
-                  <Lock className="w-3.5 h-3.5" /> Login Admin
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={onAdminLoginClick}
+                    className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  >
+                    <Lock className="w-3.5 h-3.5" /> Login Admin
+                  </button>
+                  <button
+                    onClick={() => onRoleChange('parent')}
+                    className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  >
+                    <Users className="w-3.5 h-3.5" /> Akses Sebagai Orang Tua
+                  </button>
+                </div>
               )}
             </>
           )}

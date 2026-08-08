@@ -351,12 +351,18 @@ export default function App() {
               </p>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={() => setIsAdminLoginModalOpen(true)}
                 className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/50 inline-flex items-center gap-2 transition-all"
               >
                 <ShieldCheck className="w-4 h-4" /> Login Admin Sekarang <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentRole('parent')}
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-950/50 inline-flex items-center gap-2 transition-all"
+              >
+                <Users className="w-4 h-4" /> Akses Sebagai Orang Tua
               </button>
             </div>
           </div>
@@ -634,6 +640,7 @@ export default function App() {
         adminCredentials={adminCredentials}
         users={users}
         onLoginSuccess={handleLoginSuccess}
+        onSelectParentRole={() => setCurrentRole('parent')}
       />
 
       <UserManagementModal
