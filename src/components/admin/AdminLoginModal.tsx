@@ -93,7 +93,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
               <ShieldCheck className="w-7 h-7 text-emerald-400" />
             </div>
           </div>
-          <h2 className="text-xl font-black text-white tracking-tight">Otentikasi Admin PanahanEdu</h2>
+          <h2 className="text-xl font-black text-white tracking-tight">Otentikasi Admin Panahan Bandung</h2>
           <p className="text-xs text-slate-400">
             Masukan kredensial pengelola atau pelatih untuk mengakses & mengedit data sistem.
           </p>

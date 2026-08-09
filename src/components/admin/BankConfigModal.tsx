@@ -71,7 +71,7 @@ export const BankConfigModal: React.FC<BankConfigModalProps> = ({
       bankName: bankName.trim(),
       accountNumber: accountNumber.trim(),
       accountHolder: accountHolder.trim(),
-      qrisNmid: qrisNmid.trim() || 'ID10293847120 - PanahanEdu Official',
+      qrisNmid: qrisNmid.trim() || 'ID10293847120 - Panahan Bandung Official',
       instructions: instructions.trim(),
     };
 
@@ -86,8 +86,8 @@ export const BankConfigModal: React.FC<BankConfigModalProps> = ({
   const handleResetDefault = () => {
     setBankName('Bank Syariah Indonesia (BSI)');
     setAccountNumber('7829102938');
-    setAccountHolder('PanahanEdu Official');
-    setQrisNmid('ID10293847120 - PanahanEdu Official');
+    setAccountHolder('Panahan Bandung Official');
+    setQrisNmid('ID10293847120 - Panahan Bandung Official');
     setInstructions('Harap cantumkan Nama Siswa & Bulan Tagihan saat melakukan transfer.');
   };
 
@@ -177,7 +177,7 @@ export const BankConfigModal: React.FC<BankConfigModalProps> = ({
                 required
                 value={accountHolder}
                 onChange={(e) => setAccountHolder(e.target.value)}
-                placeholder="Contoh: PanahanEdu Official / Yayasan Panahan"
+                placeholder="Contoh: Panahan Bandung Official / Yayasan Panahan"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none"
               />
             </div>
@@ -192,7 +192,7 @@ export const BankConfigModal: React.FC<BankConfigModalProps> = ({
                   type="text"
                   value={qrisNmid}
                   onChange={(e) => setQrisNmid(e.target.value)}
-                  placeholder="Contoh: ID10293847120 - PanahanEdu"
+                  placeholder="Contoh: ID10293847120 - Panahan Bandung"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-slate-200 font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 />
               </div>

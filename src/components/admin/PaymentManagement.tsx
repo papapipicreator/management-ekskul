@@ -91,7 +91,7 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
     const notif: SystemNotification = {
       id: `notif-${Date.now()}`,
       title: `Pengingat SPP Panahan (${p.month})`,
-      message: `Yth. Bapak/Ibu ${std ? std.parentName : 'Orang Tua'}. Tagihan SPP Panahan ${p.studentName} sebesar Rp ${p.amount.toLocaleString('id-ID')} untuk bulan ${p.month} dapat dibayarkan melalui QRIS/Transfer Bank pada Portal PanahanEdu.`,
+      message: `Yth. Bapak/Ibu ${std ? std.parentName : 'Orang Tua'}. Tagihan SPP Panahan ${p.studentName} sebesar Rp ${p.amount.toLocaleString('id-ID')} untuk bulan ${p.month} dapat dibayarkan melalui QRIS/Transfer Bank pada Portal Panahan Bandung.`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
       type: 'payment',
       targetSchoolId: p.schoolId,
@@ -110,7 +110,7 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
     const notif: SystemNotification = {
       id: `notif-${Date.now()}`,
       title: `Tagihan Invoice Kedatangan Pelatih - ${sch.name}`,
-      message: `Yth. ${sch.contactPerson} (${sch.name}). Invoice honor kedatangan pelatih PanahanEdu bulan Agustus 2026 (${sessionCount} sesi x Rp ${(sch.coachHonorPerSession || 0).toLocaleString('id-ID')}) sebesar Rp ${totalAmount.toLocaleString('id-ID')} telah diterbitkan. Silakan konfirmasi pembayaran.`,
+      message: `Yth. ${sch.contactPerson} (${sch.name}). Invoice honor kedatangan pelatih Panahan Bandung bulan Agustus 2026 (${sessionCount} sesi x Rp ${(sch.coachHonorPerSession || 0).toLocaleString('id-ID')}) sebesar Rp ${totalAmount.toLocaleString('id-ID')} telah diterbitkan. Silakan konfirmasi pembayaran.`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
       type: 'payment',
       targetSchoolId: sch.id,

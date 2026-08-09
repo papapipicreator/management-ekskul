@@ -19,8 +19,8 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
   bankConfig = {
     bankName: 'Bank Syariah Indonesia (BSI)',
     accountNumber: '7829102938',
-    accountHolder: 'PanahanEdu Official',
-    qrisNmid: 'ID10293847120 - PanahanEdu Official',
+    accountHolder: 'Panahan Bandung Official',
+    qrisNmid: 'ID10293847120 - Panahan Bandung Official',
     instructions: 'Harap cantumkan Nama Siswa & Bulan Tagihan saat melakukan transfer.',
   },
 }) => {
@@ -140,7 +140,7 @@ export const SppPaymentModal: React.FC<SppPaymentModalProps> = ({
               {method === 'qris' && (
                 <div className="bg-white p-4 rounded-2xl text-center text-slate-900 space-y-2 shadow">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                    Scan Kode QRIS Resmi PanahanEdu
+                    Scan Kode QRIS Resmi Panahan Bandung
                   </p>
                   <div className="w-40 h-40 mx-auto bg-slate-900 rounded-xl p-2 flex items-center justify-center border border-emerald-500/30 shadow-inner">
                     <QrCode className="w-32 h-32 text-emerald-400" />

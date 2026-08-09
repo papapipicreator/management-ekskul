@@ -774,6 +774,7 @@ export default function App() {
         {currentRole === 'parent' && (
           <ParentPortal
             students={students}
+            schools={schools}
             attendance={attendance}
             scores={scores}
             payments={payments}

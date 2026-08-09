@@ -10,7 +10,7 @@ export const exportAttendanceToPdf = (
 ) => {
   const doc = new jsPDF();
   doc.setFontSize(16);
-  doc.text('PANAHANEDU - LAPORAN PRESENSI LATIHAN PANAHAN', 14, 15);
+  doc.text('PANAHAN BANDUNG - LAPORAN PRESENSI LATIHAN PANAHAN', 14, 15);
   doc.setFontSize(10);
   doc.text(`Sekolah: ${schoolName} | Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
 
@@ -62,7 +62,7 @@ export const exportScoresToPdf = (
 ) => {
   const doc = new jsPDF();
   doc.setFontSize(16);
-  doc.text(`PANAHANEDU - ${title.toUpperCase()}`, 14, 15);
+  doc.text(`PANAHAN BANDUNG - ${title.toUpperCase()}`, 14, 15);
   doc.setFontSize(10);
   doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
 
@@ -118,7 +118,7 @@ export const exportPaymentsToPdf = (
 ) => {
   const doc = new jsPDF();
   doc.setFontSize(16);
-  doc.text('PANAHANEDU - LAPORAN REKAPITULASI SPP BULANAN', 14, 15);
+  doc.text('PANAHAN BANDUNG - LAPORAN REKAPITULASI SPP BULANAN', 14, 15);
   doc.setFontSize(10);
   doc.text(`Periode: ${monthPeriod} | Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
 
@@ -172,7 +172,7 @@ export const downloadInvoicePdf = (payment: SppPayment) => {
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
-  doc.text('PANAHANEDU OFFICIAL', 14, 20);
+  doc.text('PANAHAN BANDUNG OFFICIAL', 14, 20);
   doc.setFontSize(10);
   doc.text('KUITANSI PEMBAYARAN SPP PANAHAN RESMI', 14, 28);
 
@@ -219,7 +219,7 @@ export const downloadSchoolInvoicePdf = (
   doc.setFontSize(18);
   doc.text('INVOICE TAGIHAN EKSTRAKURIKULER PANAHAN', 14, 20);
   doc.setFontSize(10);
-  doc.text(`PANAHANEDU MANAGEMENT • Periode: ${monthPeriod}`, 14, 28);
+  doc.text(`PANAHAN BANDUNG MANAGEMENT • Periode: ${monthPeriod}`, 14, 28);
 
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(11);
@@ -254,7 +254,7 @@ export const downloadSchoolInvoicePdf = (
   doc.setTextColor(100, 116, 139);
   doc.setFontSize(9);
   doc.text('Catatan: Siswa di sekolah ini BEBAS SPP karena menggunakan skema Honor Kedatangan Pelatih.', 14, 142);
-  doc.text('Mohon transfer pembayaran ke rekening resmi PanahanEdu sebelum tanggal 10 bulan berjalan.', 14, 148);
+  doc.text('Mohon transfer pembayaran ke rekening resmi Panahan Bandung sebelum tanggal 10 bulan berjalan.', 14, 148);
 
   doc.save(`Invoice_Sekolah_${school.name.replace(/\s+/g, '_')}_${monthPeriod.replace(/\s+/g, '_')}.pdf`);
 };

@@ -13,8 +13,8 @@ import { FirebaseService } from './firebaseService';
 export const INITIAL_BANK_CONFIG: BankAccountConfig = {
   bankName: 'Bank Syariah Indonesia (BSI)',
   accountNumber: '7829102938',
-  accountHolder: 'PanahanEdu Official',
-  qrisNmid: 'ID10293847120 - PanahanEdu Official',
+  accountHolder: 'Panahan Bandung Official',
+  qrisNmid: 'ID10293847120 - Panahan Bandung Official',
   instructions: 'Harap cantumkan Nama Siswa & Bulan Tagihan saat melakukan transfer.',
 };
 

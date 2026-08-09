@@ -38,7 +38,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       setCustomMessage('Yth. Orang Tua/Wali Siswa. Mengingatkan jadwal latihan Panahan sore ini pukul 15.30 di Lapangan Sekolah. Harap memastikan putra/putri Anda membawa kelengkapan perlengkapan panahan. Terima kasih.');
     } else if (type === 'report') {
       setCustomTitle('Laporan Perkembangan Bulanan Panahan Siswa');
-      setCustomMessage('Yth. Orang Tua/Wali. Laporan perkembangan skor panahan & absensi bulan ini telah terbit. Silakan unduh melalui Portal Orang Tua di PanahanEdu.');
+      setCustomMessage('Yth. Orang Tua/Wali. Laporan perkembangan skor panahan & absensi bulan ini telah terbit. Silakan unduh melalui Portal Orang Tua di Panahan Bandung.');
     } else if (type === 'payment') {
       setCustomTitle('Pengingat Pembayaran SPP Ekstrakurikuler Panahan');
       setCustomMessage('Yth. Orang Tua/Wali. Tagihan SPP Panahan bulan Agustus 2026 sebesar Rp 150.000 jatuh tempo segera. Pembayaran dapat dilakukan dengan QRIS/Transfer Bank.');
@@ -49,7 +49,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     e.preventDefault();
     const newNotif: SystemNotification = {
       id: `notif-${Date.now()}`,
-      title: customTitle || 'Notifikasi Otomatis PanahanEdu',
+      title: customTitle || 'Notifikasi Otomatis Panahan Bandung',
       message: customMessage || 'Pesan notifikasi berhasil dikirimkan.',
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
       type: broadcastType,
