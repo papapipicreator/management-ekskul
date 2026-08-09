@@ -17,7 +17,8 @@ import {
   Palette,
 } from 'lucide-react';
 import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig, ColorSchemeId } from './types';
-import { StorageService } from './services/storageService';
+import { StorageService, INITIAL_BANK_CONFIG } from './services/storageService';
+import { FirebaseService } from './services/firebaseService';
 import { COLOR_SCHEMES } from './data/colorSchemes';
 import { ColorSchemeModal } from './components/admin/ColorSchemeModal';
 import {
@@ -178,9 +179,32 @@ export default function App() {
   const [scores, setScores] = useState<ArcheryScoreRecord[]>(INITIAL_SCORES);
   const [payments, setPayments] = useState<SppPayment[]>(INITIAL_PAYMENTS);
   const [notifications, setNotifications] = useState<SystemNotification[]>(INITIAL_NOTIFICATIONS);
+  const [bankConfig, setBankConfig] = useState<BankAccountConfig>(INITIAL_BANK_CONFIG);
 
-  // Bank Account & QRIS Config State
-  const [bankConfig, setBankConfig] = useState<BankAccountConfig>(() => StorageService.getBankConfig());
+  // Real-time Firestore Database Subscriptions
+  useEffect(() => {
+    const unsubSchools = FirebaseService.subscribeCollection('schools', INITIAL_SCHOOLS, setSchools);
+    const unsubStudents = FirebaseService.subscribeCollection('students', INITIAL_STUDENTS, setStudents);
+    const unsubCoaches = FirebaseService.subscribeCollection('coaches', INITIAL_COACHES, setCoaches);
+    const unsubSchedules = FirebaseService.subscribeCollection('schedules', INITIAL_SCHEDULES, setSchedules);
+    const unsubAttendance = FirebaseService.subscribeCollection('studentAttendance', INITIAL_ATTENDANCE, setAttendance);
+    const unsubScores = FirebaseService.subscribeCollection('scores', INITIAL_SCORES, setScores);
+    const unsubPayments = FirebaseService.subscribeCollection('payments', INITIAL_PAYMENTS, setPayments);
+    const unsubNotifications = FirebaseService.subscribeCollection('notifications', INITIAL_NOTIFICATIONS, setNotifications);
+    const unsubBankConfig = FirebaseService.subscribeDoc('settings', 'bankConfig', INITIAL_BANK_CONFIG, setBankConfig);
+
+    return () => {
+      unsubSchools();
+      unsubStudents();
+      unsubCoaches();
+      unsubSchedules();
+      unsubAttendance();
+      unsubScores();
+      unsubPayments();
+      unsubNotifications();
+      unsubBankConfig();
+    };
+  }, []);
 
   const handleUpdateBankConfig = (newConfig: BankAccountConfig) => {
     setBankConfig(newConfig);
@@ -193,65 +217,76 @@ export default function App() {
 
   // Handlers
   const handleSaveScore = (record: ArcheryScoreRecord) => {
-    setScores((prev) => [record, ...prev]);
+    const updated = [record, ...scores];
+    setScores(updated);
+    StorageService.saveScores(updated);
   };
 
   const handleMarkAttendance = (record: StudentAttendance) => {
-    setAttendance((prev) => {
-      const idx = prev.findIndex((a) => a.studentId === record.studentId && a.date === record.date);
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = record;
-        return copy;
-      }
-      return [record, ...prev];
-    });
+    let updated: StudentAttendance[] = [];
+    const idx = attendance.findIndex((a) => a.studentId === record.studentId && a.date === record.date);
+    if (idx >= 0) {
+      updated = [...attendance];
+      updated[idx] = record;
+    } else {
+      updated = [record, ...attendance];
+    }
+    setAttendance(updated);
+    StorageService.saveStudentAttendance(updated);
   };
 
   const handleUpdatePaymentStatus = (id: string, status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi') => {
-    setPayments((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              status,
-              paidDate: status === 'Lunas' ? new Date().toISOString().substring(0, 10) : p.paidDate,
-              paymentMethod: status === 'Lunas' ? p.paymentMethod || 'Manual Verifikasi Admin' : p.paymentMethod,
-            }
-          : p
-      )
+    const updated = payments.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            status,
+            paidDate: status === 'Lunas' ? new Date().toISOString().substring(0, 10) : p.paidDate,
+            paymentMethod: status === 'Lunas' ? p.paymentMethod || 'Manual Verifikasi Admin' : p.paymentMethod,
+          }
+        : p
     );
+    setPayments(updated);
+    StorageService.savePayments(updated);
   };
 
   const handlePaySppSuccess = (paymentId: string, method: string) => {
-    setPayments((prev) =>
-      prev.map((p) =>
-        p.id === paymentId
-          ? {
-              ...p,
-              status: 'Lunas',
-              paidDate: new Date().toLocaleDateString('id-ID'),
-              paymentMethod: method,
-            }
-          : p
-      )
+    const updated = payments.map((p) =>
+      p.id === paymentId
+        ? {
+            ...p,
+            status: 'Lunas' as const,
+            paidDate: new Date().toLocaleDateString('id-ID'),
+            paymentMethod: method,
+          }
+        : p
     );
+    setPayments(updated);
+    StorageService.savePayments(updated);
   };
 
   const handleAddCoach = (newCoach: Coach) => {
-    setCoaches((prev) => [...prev, newCoach]);
+    const updated = [...coaches, newCoach];
+    setCoaches(updated);
+    StorageService.saveCoaches(updated);
   };
 
   const handleEditCoach = (updatedCoach: Coach) => {
-    setCoaches((prev) => prev.map((c) => (c.id === updatedCoach.id ? updatedCoach : c)));
+    const updated = coaches.map((c) => (c.id === updatedCoach.id ? updatedCoach : c));
+    setCoaches(updated);
+    StorageService.saveCoaches(updated);
   };
 
   const handleDeleteCoach = (coachId: string) => {
-    setCoaches((prev) => prev.filter((c) => c.id !== coachId));
+    const updated = coaches.filter((c) => c.id !== coachId);
+    setCoaches(updated);
+    StorageService.saveCoaches(updated);
   };
 
   const handleAddStudent = (newStudent: Student) => {
-    setStudents((prev) => [...prev, newStudent]);
+    const updatedStudents = [...students, newStudent];
+    setStudents(updatedStudents);
+    StorageService.saveStudents(updatedStudents);
 
     // Automatically generate initial SPP Payment bill according to school financial scheme
     const schoolObj = schools.find((s) => s.id === newStudent.schoolId);
@@ -272,59 +307,83 @@ export default function App() {
       paidDate: isCoachHonorScheme ? new Date().toISOString().substring(0, 10) : undefined,
       paymentMethod: isCoachHonorScheme ? 'Skema Honor Sekolah' : undefined,
     };
-    setPayments((prev) => [...prev, newPayment]);
+    const updatedPayments = [...payments, newPayment];
+    setPayments(updatedPayments);
+    StorageService.savePayments(updatedPayments);
   };
 
   const handleEditStudent = (updatedStudent: Student) => {
-    setStudents((prev) => prev.map((s) => (s.id === updatedStudent.id ? updatedStudent : s)));
+    const updatedStudents = students.map((s) => (s.id === updatedStudent.id ? updatedStudent : s));
+    setStudents(updatedStudents);
+    StorageService.saveStudents(updatedStudents);
+
     // Also sync studentName in payment records if changed
-    setPayments((prev) =>
-      prev.map((p) => (p.studentId === updatedStudent.id ? { ...p, studentName: updatedStudent.name, schoolId: updatedStudent.schoolId, schoolName: updatedStudent.schoolName } : p))
+    const updatedPayments = payments.map((p) =>
+      p.studentId === updatedStudent.id
+        ? { ...p, studentName: updatedStudent.name, schoolId: updatedStudent.schoolId, schoolName: updatedStudent.schoolName }
+        : p
     );
+    setPayments(updatedPayments);
+    StorageService.savePayments(updatedPayments);
   };
 
   const handleDeleteStudent = (studentId: string) => {
-    setStudents((prev) => prev.filter((s) => s.id !== studentId));
-    setPayments((prev) => prev.filter((p) => p.studentId !== studentId));
+    const updatedStudents = students.filter((s) => s.id !== studentId);
+    setStudents(updatedStudents);
+    StorageService.saveStudents(updatedStudents);
+
+    const updatedPayments = payments.filter((p) => p.studentId !== studentId);
+    setPayments(updatedPayments);
+    StorageService.savePayments(updatedPayments);
   };
 
   const handleAddSchool = (newSchool: School) => {
-    setSchools((prev) => [...prev, newSchool]);
+    const updated = [...schools, newSchool];
+    setSchools(updated);
+    StorageService.saveSchools(updated);
   };
 
   const handleEditSchool = (updatedSchool: School) => {
-    setSchools((prev) => prev.map((s) => (s.id === updatedSchool.id ? updatedSchool : s)));
+    const updatedSchools = schools.map((s) => (s.id === updatedSchool.id ? updatedSchool : s));
+    setSchools(updatedSchools);
+    StorageService.saveSchools(updatedSchools);
 
     // Automatically sync student SPP bills according to school financial model
     const isCoachHonorScheme = updatedSchool.financialModel === 'coach_honor';
     const newFee = isCoachHonorScheme ? 0 : (updatedSchool.monthlyFeePerStudent || 0);
 
-    setPayments((prev) =>
-      prev.map((p) => {
-        if (p.schoolId === updatedSchool.id) {
-          return {
-            ...p,
-            schoolName: updatedSchool.name,
-            amount: newFee,
-            status: isCoachHonorScheme ? 'Lunas' : p.status,
-            paymentMethod: isCoachHonorScheme ? 'Skema Honor Sekolah' : p.paymentMethod,
-          };
-        }
-        return p;
-      })
-    );
+    const updatedPayments = payments.map((p) => {
+      if (p.schoolId === updatedSchool.id) {
+        return {
+          ...p,
+          schoolName: updatedSchool.name,
+          amount: newFee,
+          status: isCoachHonorScheme ? 'Lunas' : p.status,
+          paymentMethod: isCoachHonorScheme ? 'Skema Honor Sekolah' : p.paymentMethod,
+        };
+      }
+      return p;
+    });
+    setPayments(updatedPayments);
+    StorageService.savePayments(updatedPayments);
   };
 
   const handleDeleteSchool = (schoolId: string) => {
-    setSchools((prev) => prev.filter((s) => s.id !== schoolId));
+    const updated = schools.filter((s) => s.id !== schoolId);
+    setSchools(updated);
+    StorageService.saveSchools(updated);
   };
 
   const handleAddSchedule = (newSchedule: Schedule) => {
-    setSchedules((prev) => [newSchedule, ...prev]);
+    const updated = [newSchedule, ...schedules];
+    setSchedules(updated);
+    StorageService.saveSchedules(updated);
   };
 
   const handleSendNotification = (notif: SystemNotification) => {
-    setNotifications((prev) => [notif, ...prev]);
+    const updated = [notif, ...notifications];
+    setNotifications(updated);
+    StorageService.saveNotifications(updated);
   };
 
   // Filtered lists by selected school

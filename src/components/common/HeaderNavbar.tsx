@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette } from 'lucide-react';
+import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database } from 'lucide-react';
 import { Role, School } from '../../types';
 
 interface HeaderNavbarProps {
@@ -42,10 +42,13 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-black tracking-tight text-white">PanahanEdu</h1>
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                 PRO 2026
+              </span>
+              <span className="text-[10px] bg-sky-500/20 text-sky-300 font-bold px-2 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1 shadow-sm">
+                <Database className="w-2.5 h-2.5 text-sky-400" /> Cloud Firestore DB
               </span>
             </div>
             <p className="text-[11px] text-slate-400">

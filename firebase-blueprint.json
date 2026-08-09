@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "schools": {
+      "title": "Schools",
+      "description": "Daftar Sekolah / Klub Panahan"
+    },
+    "coaches": {
+      "title": "Coaches",
+      "description": "Daftar Pelatih Panahan"
+    },
+    "students": {
+      "title": "Students",
+      "description": "Daftar Siswa Panahan"
+    },
+    "schedules": {
+      "title": "Schedules",
+      "description": "Jadwal Latihan"
+    },
+    "studentAttendance": {
+      "title": "Student Attendance",
+      "description": "Presensi Siswa"
+    },
+    "coachAttendance": {
+      "title": "Coach Attendance",
+      "description": "Presensi Pelatih"
+    },
+    "scores": {
+      "title": "Scores",
+      "description": "Rekor Skor Panahan"
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "Pembayaran SPP"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Notifikasi Sistem"
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Pengaturan Aplikasi"
+    }
+  }
+}
