@@ -1,5 +1,5 @@
 {
-  "name": "PanahanEdu",
+  "name": "Panahan Bandung",
   "description": "Sistem Manajemen & Presensi Ekstrakurikuler Panahan Sekolah (Digital Archery Scoring, SPP Payment, Student Reports & Multi-School Management)",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
