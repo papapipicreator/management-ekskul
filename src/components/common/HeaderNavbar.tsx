@@ -1,6 +1,7 @@
 import React from 'react';
 import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database } from 'lucide-react';
 import { Role, School } from '../../types';
+import logoImg from '../../assets/logo.png';
 
 interface HeaderNavbarProps {
   currentRole: Role;
@@ -40,10 +41,9 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3">
           <img 
-            src="/logo.png" 
+            src={logoImg} 
             alt="PanahanBandung.com Logo" 
             className="h-12 w-auto object-contain shrink-0 drop-shadow-md" 
-            referrerPolicy="no-referrer" 
           />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
