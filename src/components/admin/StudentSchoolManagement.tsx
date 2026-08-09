@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { School as SchoolIcon, Users, UserPlus, Plus, Search, Edit3, Trash2, QrCode, Phone, MapPin, Award, Calendar, Clock, Target, UserCheck, Coins } from 'lucide-react';
-import { Student, School, Coach, Schedule, BowType, TargetDistance } from '../../types';
+import { School as SchoolIcon, Users, UserPlus, Plus, Search, Edit3, Trash2, QrCode, Phone, MapPin, Award, Calendar, Clock, Target, UserCheck, Coins, Eye } from 'lucide-react';
+import { Student, School, Coach, Schedule, BowType, TargetDistance, ArcheryScoreRecord, StudentAttendance, SppPayment } from '../../types';
+import { StudentDetailModal } from './StudentDetailModal';
 
 interface StudentSchoolManagementProps {
   students: Student[];
   schools: School[];
   coaches: Coach[];
   schedules?: Schedule[];
+  scores?: ArcheryScoreRecord[];
+  attendance?: StudentAttendance[];
+  payments?: SppPayment[];
   onAddStudent: (student: Student) => void;
   onEditStudent?: (student: Student) => void;
   onDeleteStudent?: (studentId: string) => void;
@@ -25,6 +29,9 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
   schools,
   coaches,
   schedules = [],
+  scores = [],
+  attendance = [],
+  payments = [],
   onAddStudent,
   onEditStudent,
   onDeleteStudent,
@@ -41,6 +48,7 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showAddSchoolModal, setShowAddSchoolModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<Student | null>(null);
 
   // Coach Management State
   const [showCoachModal, setShowCoachModal] = useState(false);
@@ -431,16 +439,17 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
             {filteredStudents.map((std) => (
               <div
                 key={std.id}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm hover:border-slate-700 transition-all flex flex-col justify-between"
+                onClick={() => setSelectedStudentForDetail(std)}
+                className="bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-5 space-y-4 shadow-sm transition-all flex flex-col justify-between cursor-pointer group"
               >
                 <div className="flex items-start gap-3">
                   <img
                     src={std.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
                     alt={std.name}
-                    className="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-500/40"
+                    className="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-500/40 group-hover:border-emerald-400 transition-colors"
                   />
                   <div>
-                    <h3 className="text-xs font-bold text-white line-clamp-1">{std.name}</h3>
+                    <h3 className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors line-clamp-1">{std.name}</h3>
                     <p className="text-[10px] text-slate-400 font-mono">NISN: {std.nisn}</p>
                     <span className="text-[10px] text-emerald-400 font-semibold block mt-0.5">
                       {std.schoolName} ({std.grade})
@@ -463,11 +472,14 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
                   </div>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-slate-800">
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                    <QrCode className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>QR Ready</span>
-                  </div>
+                <div className="pt-2 flex items-center justify-between border-t border-slate-800" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => setSelectedStudentForDetail(std)}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg flex items-center gap-1 shadow transition-colors"
+                    title="Lihat Profil Lengkap Siswa"
+                  >
+                    <Eye className="w-3 h-3" /> Detail
+                  </button>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleOpenEditStudent(std)}
@@ -483,17 +495,6 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
                     >
                       <Trash2 className="w-3 h-3" /> Hapus
                     </button>
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
-                        std.status === 'Aktif'
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                          : std.status === 'Cuti'
-                          ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                          : 'bg-slate-700 text-slate-400 border-slate-600'
-                      }`}
-                    >
-                      {std.status}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -1296,6 +1297,19 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
             </form>
           </div>
         </div>
+      )}
+
+      {/* Full Student Profile Detail Modal */}
+      {selectedStudentForDetail && (
+        <StudentDetailModal
+          student={selectedStudentForDetail}
+          school={schools.find((sch) => sch.id === selectedStudentForDetail.schoolId)}
+          scores={scores}
+          attendance={attendance}
+          payments={payments}
+          onClose={() => setSelectedStudentForDetail(null)}
+          onEditStudent={handleOpenEditStudent}
+        />
       )}
     </div>
   );

@@ -729,6 +729,9 @@ export default function App() {
                 schools={schools}
                 coaches={coaches}
                 schedules={schedules}
+                scores={scores}
+                attendance={attendance}
+                payments={payments}
                 onAddStudent={handleAddStudent}
                 onEditStudent={handleEditStudent}
                 onDeleteStudent={handleDeleteStudent}

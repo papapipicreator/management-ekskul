@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Users, Plus, Trash2, Edit, Search, Phone, Mail, Award, Target, Filter, ShieldAlert } from 'lucide-react';
-import { Student, School, BowType, TargetDistance } from '../../types';
+import { Users, Plus, Trash2, Edit, Search, Phone, Mail, Award, Target, Filter, ShieldAlert, Eye } from 'lucide-react';
+import { Student, School, BowType, TargetDistance, ArcheryScoreRecord, StudentAttendance, SppPayment } from '../../types';
+import { StudentDetailModal } from './StudentDetailModal';
 
 interface StudentManagementProps {
   students: Student[];
   schools: School[];
+  scores?: ArcheryScoreRecord[];
+  attendance?: StudentAttendance[];
+  payments?: SppPayment[];
   onAddStudent: (student: Student) => void;
   onUpdateStudent: (student: Student) => void;
   onDeleteStudent: (studentId: string) => void;
@@ -14,6 +18,9 @@ interface StudentManagementProps {
 export const StudentManagement: React.FC<StudentManagementProps> = ({
   students,
   schools,
+  scores = [],
+  attendance = [],
+  payments = [],
   onAddStudent,
   onUpdateStudent,
   onDeleteStudent,
@@ -24,6 +31,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
+  const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<Student | null>(null);
 
   // Form State
   const [schoolId, setSchoolId] = useState(schools[0]?.id || '');
@@ -240,6 +248,13 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
 
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setSelectedStudentForDetail(std)}
+                          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors text-[10px] font-bold flex items-center gap-1 shadow"
+                          title="Lihat Profil & Riwayat Lengkap"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> Detail
+                        </button>
                         <button
                           onClick={() => handleOpenEditModal(std)}
                           className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
@@ -479,6 +494,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Full Student Profile Detail Modal */}
+      {selectedStudentForDetail && (
+        <StudentDetailModal
+          student={selectedStudentForDetail}
+          school={schools.find((sch) => sch.id === selectedStudentForDetail.schoolId)}
+          scores={scores}
+          attendance={attendance}
+          payments={payments}
+          onClose={() => setSelectedStudentForDetail(null)}
+          onEditStudent={(std) => {
+            setSelectedStudentForDetail(null);
+            handleOpenEditModal(std);
+          }}
+        />
       )}
     </div>
   );
