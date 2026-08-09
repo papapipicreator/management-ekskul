@@ -28,24 +28,32 @@ export const FirebaseService = {
     onUpdate: (items: T[]) => void
   ) => {
     const colRef = collection(db, collectionName);
+    const seedKey = `firestore_seeded_${collectionName}`;
 
     return onSnapshot(
       colRef,
       async (snapshot) => {
         if (snapshot.empty) {
-          // Seed initial data if Firestore collection is empty
-          console.log(`Firestore collection '${collectionName}' is empty. Seeding initial data...`);
-          try {
-            const batch = writeBatch(db);
-            initialData.forEach((item) => {
-              const docRef = doc(db, collectionName, item.id);
-              batch.set(docRef, item);
-            });
-            await batch.commit();
-          } catch (err) {
-            console.error(`Error seeding initial data for ${collectionName}:`, err);
+          const isAlreadySeeded = localStorage.getItem(seedKey) === 'true';
+          if (!isAlreadySeeded) {
+            console.log(`Firestore collection '${collectionName}' is empty and unseeded. Seeding initial data...`);
+            try {
+              const batch = writeBatch(db);
+              initialData.forEach((item) => {
+                const docRef = doc(db, collectionName, item.id);
+                batch.set(docRef, item);
+              });
+              await batch.commit();
+              localStorage.setItem(seedKey, 'true');
+            } catch (err) {
+              console.error(`Error seeding initial data for ${collectionName}:`, err);
+            }
+          } else {
+            // Collection was intentionally emptied by user
+            onUpdate([]);
           }
         } else {
+          localStorage.setItem(seedKey, 'true');
           const items: T[] = [];
           snapshot.forEach((docSnap) => {
             items.push(docSnap.data() as T);
@@ -88,15 +96,28 @@ export const FirebaseService = {
     );
   },
 
-  // Generic batch sync to write array to Firestore
+  // Generic batch sync to write array to Firestore (and remove deleted items from Firestore)
   syncCollection: async <T extends { id: string }>(collectionName: string, items: T[]) => {
     try {
+      const snapshot = await getDocs(collection(db, collectionName));
+      const newItemIds = new Set(items.map((item) => item.id));
       const batch = writeBatch(db);
+
+      // Delete documents no longer present in items array
+      snapshot.forEach((docSnap) => {
+        if (!newItemIds.has(docSnap.id)) {
+          batch.delete(docSnap.ref);
+        }
+      });
+
+      // Write/Merge current items
       items.forEach((item) => {
         const docRef = doc(db, collectionName, item.id);
         batch.set(docRef, item, { merge: true });
       });
+
       await batch.commit();
+      localStorage.setItem(`firestore_seeded_${collectionName}`, 'true');
     } catch (err) {
       console.error(`Error syncing ${collectionName} to Firestore:`, err);
     }
@@ -116,6 +137,7 @@ export const FirebaseService = {
   deleteItem: async (collectionName: string, id: string) => {
     try {
       await deleteDoc(doc(db, collectionName, id));
+      localStorage.setItem(`firestore_seeded_${collectionName}`, 'true');
     } catch (err) {
       console.error(`Error deleting item ${id} from ${collectionName}:`, err);
     }
