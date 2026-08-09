@@ -12,6 +12,7 @@ interface HeaderNavbarProps {
   onOpenNotifications: () => void;
   onOpenScanModal: () => void;
   isAdminLoggedIn?: boolean;
+  isCoachRole?: boolean;
   onAdminLoginClick?: () => void;
   onAdminLogout?: () => void;
   onOpenColorSchemeModal?: () => void;
@@ -27,10 +28,12 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onOpenNotifications,
   onOpenScanModal,
   isAdminLoggedIn = false,
+  isCoachRole = false,
   onAdminLoginClick,
   onAdminLogout,
   onOpenColorSchemeModal,
 }) => {
+  const isFullAdmin = currentRole === 'admin' && isAdminLoggedIn && !isCoachRole;
   return (
     <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
@@ -162,18 +165,20 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             </button>
           )}
 
-          <button
-            onClick={onOpenNotifications}
-            className="p-2 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl relative transition-all"
-            title="Pusat Notifikasi & Broadcast"
-          >
-            <Bell className="w-4 h-4 text-slate-300" />
-            {unreadNotifCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
-                {unreadNotifCount}
-              </span>
-            )}
-          </button>
+          {isFullAdmin && (
+            <button
+              onClick={onOpenNotifications}
+              className="p-2 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-xl relative transition-all"
+              title="Pusat Notifikasi & Broadcast Admin"
+            >
+              <Bell className="w-4 h-4 text-slate-300" />
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
+                  {unreadNotifCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </header>

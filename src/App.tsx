@@ -453,9 +453,14 @@ export default function App() {
         selectedSchoolId={selectedSchoolId}
         onSchoolChange={setSelectedSchoolId}
         unreadNotifCount={notifications.filter((n) => !n.read).length}
-        onOpenNotifications={() => setIsNotifModalOpen(true)}
+        onOpenNotifications={() => {
+          if (currentRole === 'admin' && isAdminLoggedIn && !isCoachRole) {
+            setIsNotifModalOpen(true);
+          }
+        }}
         onOpenScanModal={() => setIsScanModalOpen(true)}
         isAdminLoggedIn={isAdminLoggedIn}
+        isCoachRole={isCoachRole}
         onAdminLoginClick={() => setIsAdminLoginModalOpen(true)}
         onAdminLogout={() => setIsAdminLoggedIn(false)}
         onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}
@@ -812,7 +817,7 @@ export default function App() {
       />
 
       <NotificationCenterModal
-        isOpen={isNotifModalOpen}
+        isOpen={isNotifModalOpen && currentRole === 'admin' && isAdminLoggedIn && !isCoachRole}
         onClose={() => setIsNotifModalOpen(false)}
         notifications={notifications}
         schools={schools}
