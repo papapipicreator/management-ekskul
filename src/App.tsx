@@ -782,6 +782,18 @@ export default function App() {
         )}
       </main>
 
+      {/* App Footer */}
+      <footer className="border-t border-slate-800/80 bg-slate-950/90 py-6 text-center text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="font-medium text-slate-400 tracking-wide">
+            copyright <a href="http://panahanbandung.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 underline transition-colors">©panahanbandung.com</a>
+          </p>
+          <p className="text-[11px] text-slate-400 font-mono">
+            Sistem Manajemen Ekstrakulikuler Panahan Bandung
+          </p>
+        </div>
+      </footer>
+
       {/* Global Modals */}
       <AdminLoginModal
         isOpen={isAdminLoginModalOpen}
