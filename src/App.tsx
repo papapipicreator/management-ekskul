@@ -739,6 +739,7 @@ export default function App() {
                 onEditSchool={handleEditSchool}
                 onDeleteSchool={handleDeleteSchool}
                 onAddSchedule={handleAddSchedule}
+                onUpdateSchedule={handleUpdateSchedule}
                 onAddCoach={handleAddCoach}
                 onEditCoach={handleEditCoach}
                 onDeleteCoach={handleDeleteCoach}

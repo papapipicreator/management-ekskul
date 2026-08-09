@@ -18,6 +18,7 @@ interface StudentSchoolManagementProps {
   onEditSchool?: (school: School) => void;
   onDeleteSchool?: (schoolId: string) => void;
   onAddSchedule?: (schedule: Schedule) => void;
+  onUpdateSchedule?: (schedule: Schedule) => void;
   onAddCoach?: (coach: Coach) => void;
   onEditCoach?: (coach: Coach) => void;
   onDeleteCoach?: (coachId: string) => void;
@@ -39,6 +40,7 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
   onEditSchool,
   onDeleteSchool,
   onAddSchedule,
+  onUpdateSchedule,
   onAddCoach,
   onEditCoach,
   onDeleteCoach,
@@ -166,6 +168,25 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
     setFinancialModel(mode);
     setNewMonthlyFee(sch.monthlyFeePerStudent || 150000);
     setNewCoachHonor(sch.coachHonorPerSession || 100000);
+
+    // Populate schedule & coach details from existing schedule or headCoach match
+    const existingSchedule = schedules.find((s) => s.schoolId === sch.id);
+    if (existingSchedule) {
+      setNewDayOfWeek(existingSchedule.dayOfWeek || 'Rabu & Sabtu');
+      setNewTimeSlot(existingSchedule.timeSlot || '15:30 - 17:00 WIB');
+      setNewLocation(existingSchedule.location || sch.address || 'Lapangan Archery Sekolah');
+      const foundCoach = coaches.find((c) => c.id === existingSchedule.coachId || c.name === existingSchedule.coachName || c.name === sch.headCoach);
+      setNewCoachId(foundCoach?.id || coaches[0]?.id || '');
+      setNewTargetCount(existingSchedule.targetCount || 6);
+    } else {
+      const matchedCoach = coaches.find((c) => c.name === sch.headCoach) || coaches[0];
+      setNewDayOfWeek('Rabu & Sabtu');
+      setNewTimeSlot('15:30 - 17:00 WIB');
+      setNewLocation(sch.address || 'Lapangan Archery Sekolah');
+      setNewCoachId(matchedCoach?.id || coaches[0]?.id || '');
+      setNewTargetCount(6);
+    }
+
     setShowAddSchoolModal(true);
   };
 
@@ -234,6 +255,9 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
     e.preventDefault();
     if (!newSchoolName) return;
 
+    const assignedCoach = coaches.find((c) => c.id === newCoachId) || coaches[0];
+    const coachName = assignedCoach?.name || 'Pelatih Panahan';
+
     if (editingSchool) {
       const updatedSchool: School = {
         ...editingSchool,
@@ -242,11 +266,59 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
         address: newAddress || editingSchool.address,
         contactPerson: newContactPerson || editingSchool.contactPerson,
         phone: newPhone || editingSchool.phone,
+        headCoach: coachName,
+        practiceDays: newDayOfWeek || editingSchool.practiceDays || 'Rabu & Sabtu',
         financialModel: financialModel,
         monthlyFeePerStudent: financialModel === 'monthly_fee' ? (Number(newMonthlyFee) || 0) : 0,
         coachHonorPerSession: financialModel === 'coach_honor' ? (Number(newCoachHonor) || 0) : 0,
       };
       onEditSchool?.(updatedSchool);
+
+      // Update existing schedule or create a new one
+      const existingSchedule = schedules.find((s) => s.schoolId === editingSchool.id);
+      if (existingSchedule) {
+        const updatedSchedule: Schedule = {
+          ...existingSchedule,
+          schoolId: editingSchool.id,
+          schoolName: newSchoolName,
+          dayOfWeek: newDayOfWeek || 'Rabu & Sabtu',
+          timeSlot: newTimeSlot || '15:30 - 17:00 WIB',
+          location: newLocation || 'Lapangan Archery Sekolah',
+          coachId: assignedCoach?.id || existingSchedule.coachId,
+          coachName: coachName,
+          targetCount: Number(newTargetCount) || 6,
+        };
+        if (onUpdateSchedule) {
+          onUpdateSchedule(updatedSchedule);
+        } else if (onAddSchedule) {
+          onAddSchedule(updatedSchedule);
+        }
+      } else if (onAddSchedule) {
+        const createdSchedule: Schedule = {
+          id: `schd-${Date.now()}`,
+          schoolId: editingSchool.id,
+          schoolName: newSchoolName,
+          dayOfWeek: newDayOfWeek || 'Rabu & Sabtu',
+          timeSlot: newTimeSlot || '15:30 - 17:00 WIB',
+          location: newLocation || 'Lapangan Archery Sekolah',
+          coachId: assignedCoach?.id || 'coach-1',
+          coachName: coachName,
+          date: new Date().toISOString().substring(0, 10),
+          targetCount: Number(newTargetCount) || 6,
+        };
+        onAddSchedule(createdSchedule);
+      }
+
+      // Update coach's assigned schools list
+      if (assignedCoach && onEditCoach) {
+        const currentAssigned = assignedCoach.assignedSchools || [];
+        if (!currentAssigned.includes(editingSchool.id)) {
+          onEditCoach({
+            ...assignedCoach,
+            assignedSchools: [...currentAssigned, editingSchool.id],
+          });
+        }
+      }
     } else {
       const createdSchoolId = `sch-${Date.now()}`;
       const createdSchool: School = {
@@ -256,6 +328,8 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
         address: newAddress || 'Jl. Pendidikan No. 1',
         contactPerson: newContactPerson || 'Koordinator Ekstra',
         phone: newPhone,
+        headCoach: coachName,
+        practiceDays: newDayOfWeek || 'Rabu & Sabtu',
         activeStudentsCount: 0,
         financialModel: financialModel,
         monthlyFeePerStudent: financialModel === 'monthly_fee' ? (Number(newMonthlyFee) || 0) : 0,
@@ -266,7 +340,6 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
 
       // Create Schedule linked to this school
       if (onAddSchedule) {
-        const assignedCoach = coaches.find((c) => c.id === newCoachId) || coaches[0];
         const createdSchedule: Schedule = {
           id: `schd-${Date.now()}`,
           schoolId: createdSchoolId,
@@ -275,11 +348,21 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
           timeSlot: newTimeSlot || '15:30 - 17:00 WIB',
           location: newLocation || 'Lapangan Archery Sekolah',
           coachId: assignedCoach?.id || 'coach-1',
-          coachName: assignedCoach?.name || 'Coach Fadli Archery',
+          coachName: coachName,
           date: new Date().toISOString().substring(0, 10),
           targetCount: Number(newTargetCount) || 6,
         };
         onAddSchedule(createdSchedule);
+      }
+
+      if (assignedCoach && onEditCoach) {
+        const currentAssigned = assignedCoach.assignedSchools || [];
+        if (!currentAssigned.includes(createdSchoolId)) {
+          onEditCoach({
+            ...assignedCoach,
+            assignedSchools: [...currentAssigned, createdSchoolId],
+          });
+        }
       }
     }
 
@@ -1075,77 +1158,86 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
                 </div>
               </div>
 
-              {/* Seksi Jadwal Sesi Latihan (Hanya saat tambah sekolah baru) */}
-              {!editingSchool && (
-                <div className="border-t border-slate-800 pt-3 space-y-3">
+              {/* Seksi Pelatih Penanggung Jawab & Jadwal Sesi Latihan */}
+              <div className="border-t border-slate-800 pt-3 space-y-3">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-amber-400" />
-                    <h4 className="text-[11px] font-bold text-amber-300 uppercase tracking-wider">Jadwal Sesi Latihan Perdana</h4>
+                    <h4 className="text-[11px] font-bold text-amber-300 uppercase tracking-wider">
+                      Pelatih Penanggung Jawab & Jadwal Latihan
+                    </h4>
                   </div>
+                  <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 font-medium">
+                    {editingSchool ? 'Edit Pelatih & Jadwal' : 'Jadwal Perdana'}
+                  </span>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Hari Latihan</label>
-                      <input
-                        type="text"
-                        value={newDayOfWeek}
-                        onChange={(e) => setNewDayOfWeek(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
-                        placeholder="Contoh: Rabu & Sabtu"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Jam Sesi Latihan</label>
-                      <input
-                        type="text"
-                        value={newTimeSlot}
-                        onChange={(e) => setNewTimeSlot(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
-                        placeholder="Contoh: 15:30 - 17:00 WIB"
-                      />
-                    </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                      Pelatih Penanggung Jawab
+                    </label>
+                    <select
+                      value={newCoachId}
+                      onChange={(e) => setNewCoachId(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-semibold focus:ring-2 focus:ring-amber-500"
+                    >
+                      {coaches.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.roleTitle || 'Pelatih'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 block mb-1">Lokasi Lapangan Panahan</label>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">Hari Latihan</label>
                     <input
                       type="text"
-                      value={newLocation}
-                      onChange={(e) => setNewLocation(e.target.value)}
+                      value={newDayOfWeek}
+                      onChange={(e) => setNewDayOfWeek(e.target.value)}
                       className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
-                      placeholder="Contoh: Lapangan Archery Utama Sekolah"
+                      placeholder="Contoh: Rabu & Sabtu"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">Jam Sesi Latihan</label>
+                    <input
+                      type="text"
+                      value={newTimeSlot}
+                      onChange={(e) => setNewTimeSlot(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
+                      placeholder="Contoh: 15:30 - 17:00 WIB"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Pelatih Penanggung Jawab</label>
-                      <select
-                        value={newCoachId}
-                        onChange={(e) => setNewCoachId(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
-                      >
-                        {coaches.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name} ({c.roleTitle})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1">Target / Bantalan</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={newTargetCount}
-                        onChange={(e) => setNewTargetCount(Number(e.target.value))}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
-                      />
-                    </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">Target / Bantalan</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={newTargetCount}
+                      onChange={(e) => setNewTargetCount(Number(e.target.value))}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
+                    />
                   </div>
                 </div>
-              )}
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1">Lokasi Lapangan Panahan</label>
+                  <input
+                    type="text"
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200"
+                    placeholder="Contoh: Lapangan Archery Utama Sekolah"
+                  />
+                </div>
+              </div>
 
               <div className="flex gap-2 pt-3 border-t border-slate-800">
                 <button
