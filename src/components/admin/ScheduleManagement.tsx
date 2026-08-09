@@ -38,6 +38,8 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
   const [coachId, setCoachId] = useState(coaches[0]?.id || '');
   const [targetFocus, setTargetFocus] = useState('Teknik Stance, Anchor Point & Release');
   const [targetDistance, setTargetDistance] = useState<TargetDistance>('20m');
+  const [materiLatihan, setMateriLatihan] = useState('1. Pemanasan & Stretching\n2. Drill Form Anchor & Release 18m\n3. Simulasi Scoring 3 End (18 anak panah)');
+  const [evaluasiLatihan, setEvaluasiLatihan] = useState('Para atlet sudah konsisten di grup kuning/merah. Rata-rata release makin stabil.');
   const [notes, setNotes] = useState('');
 
   const filteredSchedules = selectedSchoolId === 'ALL'
@@ -55,6 +57,8 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
     setCoachId(coaches[0]?.id || '');
     setTargetFocus('Skoring & Grouping Anak Panah');
     setTargetDistance('20m');
+    setMateriLatihan('1. Pemanasan & Stabilitas Bahu\n2. Drill Form Anchor & Release 18m\n3. Simulasi Skoring 6 End');
+    setEvaluasiLatihan('');
     setNotes('Bawa pelindung dada dan finger tab.');
     setIsModalOpen(true);
   };
@@ -62,14 +66,16 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
   const handleOpenEditModal = (schd: Schedule) => {
     setEditingSchedule(schd);
     setSchoolId(schd.schoolId);
-    setTitle(schd.title);
+    setTitle(schd.title || '');
     setDate(schd.date);
-    setTimeStart(schd.timeStart);
-    setTimeEnd(schd.timeEnd);
+    setTimeStart(schd.timeStart || '');
+    setTimeEnd(schd.timeEnd || '');
     setLocation(schd.location);
     setCoachId(schd.coachId);
-    setTargetFocus(schd.targetFocus);
-    setTargetDistance(schd.targetDistance);
+    setTargetFocus(schd.targetFocus || '');
+    setTargetDistance(schd.targetDistance || '20m');
+    setMateriLatihan(schd.materiLatihan || schd.targetFocus || '');
+    setEvaluasiLatihan(schd.evaluasiLatihan || '');
     setNotes(schd.notes || '');
     setIsModalOpen(true);
   };
@@ -93,6 +99,8 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
         coachName: coach ? coach.name : 'Pelatih Utama',
         targetFocus,
         targetDistance,
+        materiLatihan,
+        evaluasiLatihan,
         notes,
       };
       onUpdateSchedule(updated);
@@ -110,6 +118,8 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
         coachName: coach ? coach.name : 'Pelatih Utama',
         targetFocus,
         targetDistance,
+        materiLatihan,
+        evaluasiLatihan,
         notes,
       };
       onAddSchedule(newSchd);
@@ -194,9 +204,31 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                   </p>
                   <p className="flex items-center gap-2 text-slate-300">
                     <Target className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Materi: <em className="text-slate-200">{schd.targetFocus}</em></span>
+                    <span>Materi Utama: <em className="text-slate-200">{schd.targetFocus}</em></span>
                   </p>
                 </div>
+
+                {schd.materiLatihan && (
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-emerald-500/20 space-y-1">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                      📋 Materi Latihan Pelatih:
+                    </span>
+                    <p className="text-[11px] text-slate-200 whitespace-pre-line leading-relaxed">
+                      {schd.materiLatihan}
+                    </p>
+                  </div>
+                )}
+
+                {schd.evaluasiLatihan && (
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-amber-500/20 space-y-1">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                      📝 Evaluasi Sesi Latihan:
+                    </span>
+                    <p className="text-[11px] text-slate-300 whitespace-pre-line leading-relaxed italic">
+                      "{schd.evaluasiLatihan}"
+                    </p>
+                  </div>
+                )}
 
                 {schd.notes && (
                   <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60 text-[11px] text-slate-300 italic">
@@ -387,7 +419,7 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
 
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Materi Focus Latihan
+                  Materi Focus Latihan (Singkat)
                 </label>
                 <input
                   type="text"
@@ -396,6 +428,32 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                   placeholder="Contoh: Form Release & Stance"
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-emerald-500"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-emerald-400 block mb-1">
+                  Rincian Materi Latihan Pelatih
+                </label>
+                <textarea
+                  value={materiLatihan}
+                  onChange={(e) => setMateriLatihan(e.target.value)}
+                  rows={3}
+                  placeholder="Isi rincian materi, misal:&#10;1. Pemanasan & Stretching&#10;2. Drill Anchor & Release 18m&#10;3. Simulasi Skoring 6 End"
+                  className="w-full bg-slate-800 border border-emerald-500/30 rounded-xl p-2.5 text-xs text-slate-200 focus:ring-2 focus:ring-emerald-500 placeholder-slate-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-amber-400 block mb-1">
+                  Evaluasi & Catatan Hasil Latihan Pelatih
+                </label>
+                <textarea
+                  value={evaluasiLatihan}
+                  onChange={(e) => setEvaluasiLatihan(e.target.value)}
+                  rows={2}
+                  placeholder="Ringkasan hasil/perkembangan siswa pada sesi ini..."
+                  className="w-full bg-slate-800 border border-amber-500/30 rounded-xl p-2.5 text-xs text-slate-200 focus:ring-2 focus:ring-amber-500 placeholder-slate-500 font-mono"
                 />
               </div>
 

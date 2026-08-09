@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardCheck, QrCode, CheckCircle2, XCircle, Clock, AlertCircle, Plus, Download, FileSpreadsheet, Send, Search, Filter } from 'lucide-react';
+import { ClipboardCheck, QrCode, CheckCircle2, XCircle, Clock, AlertCircle, Plus, Download, FileSpreadsheet, Send, Search, Filter, BookOpen, Save, BookMarked } from 'lucide-react';
 import { StudentAttendance, Student, Schedule, School, SystemNotification } from '../../types';
 import { exportAttendanceToPdf, exportAttendanceToExcel } from '../../utils/exportUtils';
 
@@ -10,6 +10,7 @@ interface AttendanceManagementProps {
   schools: School[];
   onMarkAttendance: (record: StudentAttendance) => void;
   onSendNotification: (notif: SystemNotification) => void;
+  onUpdateSchedule?: (schedule: Schedule) => void;
   selectedSchoolId: string;
   onOpenScanModal: () => void;
 }
@@ -21,6 +22,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
   schools,
   onMarkAttendance,
   onSendNotification,
+  onUpdateSchedule,
   selectedSchoolId,
   onOpenScanModal,
 }) => {
@@ -29,7 +31,40 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  const activeSchedule = schedules.find((s) => s.id === selectedScheduleId);
+  const [materiInput, setMateriInput] = useState<string>('');
+  const [evaluasiInput, setEvaluasiInput] = useState<string>('');
+  const [isMateriSaved, setIsMateriSaved] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (schedules.length > 0 && !schedules.some((s) => s.id === selectedScheduleId)) {
+      setSelectedScheduleId(schedules[0].id);
+    }
+  }, [schedules, selectedScheduleId]);
+
+  const activeSchedule = schedules.find((s) => s.id === selectedScheduleId) || schedules[0];
+
+  React.useEffect(() => {
+    if (activeSchedule) {
+      setMateriInput(activeSchedule.materiLatihan || activeSchedule.targetFocus || '');
+      setEvaluasiInput(activeSchedule.evaluasiLatihan || '');
+      setIsMateriSaved(false);
+    }
+  }, [activeSchedule?.id]);
+
+  const handleSaveMateri = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeSchedule) return;
+
+    const updatedSchd: Schedule = {
+      ...activeSchedule,
+      materiLatihan: materiInput,
+      evaluasiLatihan: evaluasiInput,
+    };
+
+    onUpdateSchedule?.(updatedSchd);
+    setIsMateriSaved(true);
+    setTimeout(() => setIsMateriSaved(false), 3500);
+  };
 
   // Available students for this schedule's school
   const targetSchoolId = activeSchedule ? activeSchedule.schoolId : selectedSchoolId;
@@ -166,6 +201,69 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Form Jurnal & Materi Latihan Pelatih */}
+      {activeSchedule && (
+        <form onSubmit={handleSaveMateri} className="bg-slate-900 border border-emerald-500/30 p-5 rounded-2xl space-y-3 shadow-md animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-emerald-400" />
+                Form Isian Materi Latihan Pelatih
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Sesi: <strong className="text-emerald-400">{activeSchedule.schoolName}</strong> ({activeSchedule.date || date}) • Pelatih: <strong className="text-slate-200">{activeSchedule.coachName}</strong>
+              </p>
+            </div>
+            <button
+              type="submit"
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+                isMateriSaved
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40'
+              }`}
+            >
+              {isMateriSaved ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" /> Materi Disimpan!
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" /> Simpan Materi Latihan
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div>
+              <label className="text-xs font-semibold text-emerald-300 block mb-1">
+                Rincian Materi Latihan yang Diberikan:
+              </label>
+              <textarea
+                value={materiInput}
+                onChange={(e) => setMateriInput(e.target.value)}
+                rows={3}
+                placeholder="Contoh:&#10;1. Pemanasan & Stretching bahu (15 mnt)&#10;2. Drill teknik Anchor & Release jarak 18 meter&#10;3. Skoring 3 End (18 anak panah)"
+                className="w-full bg-slate-950/80 border border-emerald-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 leading-relaxed font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-amber-300 block mb-1">
+                Evaluasi / Catatan Hasil Latihan Pelatih:
+              </label>
+              <textarea
+                value={evaluasiInput}
+                onChange={(e) => setEvaluasiInput(e.target.value)}
+                rows={3}
+                placeholder="Contoh:&#10;Para atlet pemula sudah menguasai stance, namun perlu latihan ekstra untuk konsistensi drawing hand..."
+                className="w-full bg-slate-950/80 border border-amber-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-amber-500 leading-relaxed font-mono"
+              />
+            </div>
+          </div>
+        </form>
+      )}
 
       {/* Roster & Presensi Grid */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">

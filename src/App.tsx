@@ -369,13 +369,31 @@ export default function App() {
   };
 
   const handleDeleteSchool = (schoolId: string) => {
-    const updated = schools.filter((s) => s.id !== schoolId);
-    setSchools(updated);
-    StorageService.saveSchools(updated);
+    // Delete school
+    const updatedSchools = schools.filter((s) => s.id !== schoolId);
+    setSchools(updatedSchools);
+    StorageService.saveSchools(updatedSchools);
+
+    // Synchronize: Delete all training session schedules linked to this school
+    const updatedSchedules = schedules.filter((sch) => sch.schoolId !== schoolId);
+    setSchedules(updatedSchedules);
+    StorageService.saveSchedules(updatedSchedules);
   };
 
   const handleAddSchedule = (newSchedule: Schedule) => {
     const updated = [newSchedule, ...schedules];
+    setSchedules(updated);
+    StorageService.saveSchedules(updated);
+  };
+
+  const handleUpdateSchedule = (updatedSchedule: Schedule) => {
+    const updated = schedules.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s));
+    setSchedules(updated);
+    StorageService.saveSchedules(updated);
+  };
+
+  const handleDeleteSchedule = (scheduleId: string) => {
+    const updated = schedules.filter((s) => s.id !== scheduleId);
     setSchedules(updated);
     StorageService.saveSchedules(updated);
   };
@@ -386,10 +404,39 @@ export default function App() {
     StorageService.saveNotifications(updated);
   };
 
+  // Coach assigned schools filtering logic
+  const coachAssignedSchoolIds = isCoachRole && currentUserSession?.assignedSchoolIds && currentUserSession.assignedSchoolIds.length > 0
+    ? currentUserSession.assignedSchoolIds
+    : null;
+
+  const effectiveSchools = coachAssignedSchoolIds
+    ? schools.filter((s) => coachAssignedSchoolIds.includes(s.id))
+    : schools;
+
+  const effectiveStudents = coachAssignedSchoolIds
+    ? students.filter((s) => coachAssignedSchoolIds.includes(s.schoolId))
+    : students;
+
+  const effectiveSchedules = coachAssignedSchoolIds
+    ? schedules.filter((sch) => coachAssignedSchoolIds.includes(sch.schoolId))
+    : schedules;
+
+  const effectiveAttendance = coachAssignedSchoolIds
+    ? attendance.filter((a) => coachAssignedSchoolIds.includes(a.schoolId))
+    : attendance;
+
+  const effectiveScores = coachAssignedSchoolIds
+    ? scores.filter((sc) => coachAssignedSchoolIds.includes(sc.schoolId))
+    : scores;
+
+  const effectivePayments = coachAssignedSchoolIds
+    ? payments.filter((p) => coachAssignedSchoolIds.includes(p.schoolId))
+    : payments;
+
   // Filtered lists by selected school
-  const filteredStudents = selectedSchoolId === 'ALL' ? students : students.filter((s) => s.schoolId === selectedSchoolId);
-  const filteredScores = selectedSchoolId === 'ALL' ? scores : scores.filter((s) => s.schoolId === selectedSchoolId);
-  const filteredPayments = selectedSchoolId === 'ALL' ? payments : payments.filter((p) => p.schoolId === selectedSchoolId);
+  const filteredStudents = selectedSchoolId === 'ALL' ? effectiveStudents : effectiveStudents.filter((s) => s.schoolId === selectedSchoolId);
+  const filteredScores = selectedSchoolId === 'ALL' ? effectiveScores : effectiveScores.filter((s) => s.schoolId === selectedSchoolId);
+  const filteredPayments = selectedSchoolId === 'ALL' ? effectivePayments : effectivePayments.filter((p) => p.schoolId === selectedSchoolId);
 
   return (
     <div className={`min-h-screen ${currentSchemeConfig.bgClass} ${currentSchemeConfig.textClass} font-sans antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-slate-950`}>
@@ -402,7 +449,7 @@ export default function App() {
             setIsAdminLoginModalOpen(true);
           }
         }}
-        schools={schools}
+        schools={effectiveSchools}
         selectedSchoolId={selectedSchoolId}
         onSchoolChange={setSelectedSchoolId}
         unreadNotifCount={notifications.filter((n) => !n.read).length}
@@ -478,9 +525,19 @@ export default function App() {
                   </div>
                   <p className="text-xs text-slate-400">
                     {isCoachRole
-                      ? 'Anda memiliki akses khusus untuk membuka data scoring panahan dan presensi kehadiran saja.'
+                      ? 'Anda memiliki akses khusus untuk membuka data scoring panahan dan presensi kehadiran sekolah yang Anda latih.'
                       : 'Anda memiliki akses penuh untuk mengedit data siswa, presensi, scoring, keuangan, dan kelola user.'}
                   </p>
+                  {isCoachRole && (
+                    <p className="text-[11px] text-amber-300 font-semibold mt-1">
+                      Sekolah Dilatih:{' '}
+                      <span className="text-slate-200">
+                        {coachAssignedSchoolIds
+                          ? effectiveSchools.map((s) => s.name).join(', ') || 'Belum Ditugaskan'
+                          : 'Semua Sekolah Mitra'}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -530,7 +587,7 @@ export default function App() {
               <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Sekolah Mitra</span>
-                  <p className="text-2xl font-black text-amber-400">{schools.length}</p>
+                  <p className="text-2xl font-black text-amber-400">{effectiveSchools.length}</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
                   <SchoolIcon className="w-5 h-5" />
@@ -625,10 +682,10 @@ export default function App() {
             {/* Admin Active Tab Content */}
             {adminTab === 'scoring' && (
               <ArcheryScoring
-                students={students}
-                schools={schools}
-                schedules={schedules}
-                scores={scores}
+                students={effectiveStudents}
+                schools={effectiveSchools}
+                schedules={effectiveSchedules}
+                scores={effectiveScores}
                 onSaveScore={handleSaveScore}
                 selectedSchoolId={selectedSchoolId}
               />
@@ -636,12 +693,13 @@ export default function App() {
 
             {adminTab === 'attendance' && (
               <AttendanceManagement
-                attendance={attendance}
-                students={students}
-                schedules={schedules}
-                schools={schools}
+                attendance={effectiveAttendance}
+                students={effectiveStudents}
+                schedules={effectiveSchedules}
+                schools={effectiveSchools}
                 onMarkAttendance={handleMarkAttendance}
                 onSendNotification={handleSendNotification}
+                onUpdateSchedule={handleUpdateSchedule}
                 selectedSchoolId={selectedSchoolId}
                 onOpenScanModal={() => setIsScanModalOpen(true)}
               />
@@ -733,6 +791,7 @@ export default function App() {
         isOpen={isUserManagementModalOpen}
         onClose={() => setIsUserManagementModalOpen(false)}
         users={users}
+        schools={schools}
         onAddUser={handleAddUserAccount}
         onDeleteUser={handleDeleteUserAccount}
       />
@@ -747,8 +806,8 @@ export default function App() {
       <CoachScanModal
         isOpen={isScanModalOpen}
         onClose={() => setIsScanModalOpen(false)}
-        students={students}
-        schedules={schedules}
+        students={effectiveStudents}
+        schedules={effectiveSchedules}
         onMarkAttendance={handleMarkAttendance}
       />
 

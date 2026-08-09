@@ -162,7 +162,7 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
   };
 
   const handleDeleteSchoolConfirm = (sch: School) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus data sekolah mitra "${sch.name}"?`)) {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus sekolah mitra "${sch.name}"? Semua jadwal sesi latihan yang terhubung dengan sekolah ini juga akan otomatis terhapus.`)) {
       onDeleteSchool?.(sch.id);
     }
   };

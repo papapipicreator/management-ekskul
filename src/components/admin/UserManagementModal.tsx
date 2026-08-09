@@ -16,12 +16,13 @@ import {
   Shield,
   Award
 } from 'lucide-react';
-import { UserAccount } from '../../types';
+import { UserAccount, School } from '../../types';
 
 interface UserManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   users: UserAccount[];
+  schools?: School[];
   onAddUser: (newUser: Omit<UserAccount, 'id' | 'createdAt'>) => void;
   onDeleteUser: (id: string) => void;
 }
@@ -30,6 +31,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   isOpen,
   onClose,
   users,
+  schools = [],
   onAddUser,
   onDeleteUser,
 }) => {
@@ -41,6 +43,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'coach'>('coach');
+  const [assignedSchoolIds, setAssignedSchoolIds] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState('');
@@ -79,11 +82,17 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       return;
     }
 
+    if (role === 'coach' && schools.length > 0 && assignedSchoolIds.length === 0) {
+      setErrorMsg('Harap pilih minimal 1 sekolah yang dilatih oleh pelatih ini!');
+      return;
+    }
+
     onAddUser({
       name: name.trim(),
       username: cleanUsername,
       password: password,
       role: role,
+      assignedSchoolIds: role === 'coach' ? assignedSchoolIds : undefined,
     });
 
     setSuccessMsg(`User baru "${name.trim()}" (${role === 'admin' ? 'Admin' : 'Pelatih'}) berhasil dibuat!`);
@@ -94,6 +103,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
     setPassword('');
     setConfirmPassword('');
     setRole('coach');
+    setAssignedSchoolIds([]);
 
     setTimeout(() => {
       setSuccessMsg('');
@@ -198,6 +208,19 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                       <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                         Username: <span className="text-slate-200">{u.username}</span>
                       </p>
+                      {!isAdmin && (
+                        <p className="text-[10px] text-amber-400/90 font-medium mt-1">
+                          Sekolah Dilatih:{' '}
+                          <span className="text-slate-300">
+                            {u.assignedSchoolIds && u.assignedSchoolIds.length > 0
+                              ? schools
+                                  .filter((sch) => u.assignedSchoolIds?.includes(sch.id))
+                                  .map((sch) => sch.name)
+                                  .join(', ') || 'Semua Sekolah'
+                              : 'Semua Sekolah Mitra'}
+                          </span>
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -349,6 +372,77 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* School Selection for Coach */}
+            {role === 'coach' && (
+              <div className="space-y-2 bg-slate-950/90 border border-amber-500/30 p-4 rounded-2xl animate-in fade-in duration-150">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <Target className="w-4 h-4 text-amber-400" /> Pilih Sekolah yang Dilatih:
+                  </label>
+                  {schools.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAssignedSchoolIds(schools.map((s) => s.id))}
+                        className="text-[10px] text-emerald-400 hover:underline font-semibold"
+                      >
+                        Pilih Semua
+                      </button>
+                      <span className="text-slate-600 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setAssignedSchoolIds([])}
+                        className="text-[10px] text-slate-400 hover:underline font-semibold"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Pelatih ini hanya bisa melihat data dan mengisi presensi/scoring untuk sekolah yang diikutsertakan di bawah ini.
+                </p>
+
+                {schools.length === 0 ? (
+                  <p className="text-xs text-rose-400 py-2">
+                    Belum ada sekolah mitra terdaftar. Silakan tambahkan data sekolah terlebih dahulu.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pt-1 pr-1">
+                    {schools.map((sch) => {
+                      const isChecked = assignedSchoolIds.includes(sch.id);
+                      return (
+                        <label
+                          key={sch.id}
+                          className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${
+                            isChecked
+                              ? 'bg-amber-500/15 border-amber-500/50 text-white font-bold shadow-sm'
+                              : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          <span className="text-xs truncate max-w-[170px]" title={sch.name}>
+                            {sch.name}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAssignedSchoolIds((prev) => [...prev, sch.id]);
+                              } else {
+                                setAssignedSchoolIds((prev) => prev.filter((id) => id !== sch.id));
+                              }
+                            }}
+                            className="w-4 h-4 accent-amber-500 rounded cursor-pointer shrink-0"
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="pt-2">
               <button

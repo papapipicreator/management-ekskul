@@ -31,7 +31,19 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
   const activeStudent = students.find((s) => s.id === selectedStudentId) || availableStudents[0];
 
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>(schedules[0]?.id || '');
-  const activeSchedule = schedules.find((schd) => schd.id === selectedScheduleId);
+  const activeSchedule = schedules.find((schd) => schd.id === selectedScheduleId) || schedules[0];
+
+  React.useEffect(() => {
+    if (availableStudents.length > 0 && !availableStudents.some((s) => s.id === selectedStudentId)) {
+      setSelectedStudentId(availableStudents[0].id);
+    }
+  }, [availableStudents, selectedStudentId]);
+
+  React.useEffect(() => {
+    if (schedules.length > 0 && !schedules.some((s) => s.id === selectedScheduleId)) {
+      setSelectedScheduleId(schedules[0].id);
+    }
+  }, [schedules, selectedScheduleId]);
 
   const [bowType, setBowType] = useState<BowType>(activeStudent?.bowType || 'Standard Bow');
   const [distance, setDistance] = useState<TargetDistance>(activeStudent?.targetDistance || '20m');

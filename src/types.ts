@@ -69,6 +69,8 @@ export interface Schedule {
   targetCount?: number;
   targetFocus?: string;
   targetDistance?: string;
+  materiLatihan?: string;
+  evaluasiLatihan?: string;
   notes?: string;
 }
 
@@ -159,6 +161,7 @@ export interface UserAccount {
   username: string;
   password: string;
   role: 'admin' | 'coach';
+  assignedSchoolIds?: string[];
   createdAt: string;
 }
 
