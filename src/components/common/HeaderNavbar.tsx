@@ -39,14 +39,15 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-amber-500 p-0.5 shadow-lg shadow-emerald-950/50 flex items-center justify-center">
-            <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
-              <Target className="w-6 h-6 text-amber-400" />
-            </div>
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="PanahanBandung.com Logo" 
+            className="h-12 w-auto object-contain shrink-0 drop-shadow-md" 
+            referrerPolicy="no-referrer" 
+          />
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg font-black tracking-tight text-white">PanahanEdu</h1>
+              <h1 className="text-lg font-black tracking-tight text-white">PanahanBandung.com</h1>
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                 PRO 2026
               </span>

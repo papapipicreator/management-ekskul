@@ -35,12 +35,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand & Logo */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-amber-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
-            <Target className="w-6 h-6 text-white" />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="PanahanBandung.com Logo" 
+            className="h-10 w-auto object-contain shrink-0 drop-shadow-md" 
+            referrerPolicy="no-referrer" 
+          />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight text-white">PanahanEdu</span>
+              <span className="font-bold text-lg tracking-tight text-white">PanahanBandung.com</span>
               <span className="text-[10px] uppercase tracking-wider font-semibold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
                 Sekolah
               </span>
