@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Target, Bell, UserCheck, School as SchoolIcon, Shield, RotateCcw, Search, CheckCircle2, Send } from 'lucide-react';
 import { School, UserRole, SystemNotification } from '../types';
-import logoImg from '../assets/logo.png';
+import { LOGO_IMAGE } from '../assets/logoDataUri';
 
 interface NavbarProps {
   currentRole: UserRole;
@@ -37,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand & Logo */}
         <div className="flex items-center space-x-3">
           <img 
-            src={logoImg} 
+            src={LOGO_IMAGE} 
             alt="PanahanBandung.com Logo" 
             className="h-10 w-auto object-contain shrink-0 drop-shadow-md" 
           />
