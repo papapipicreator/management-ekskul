@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database } from 'lucide-react';
+import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database, FileSpreadsheet } from 'lucide-react';
 import { Role, School } from '../../types';
 import { LOGO_IMAGE } from '../../assets/logoDataUri';
 
@@ -17,6 +17,7 @@ interface HeaderNavbarProps {
   onAdminLoginClick?: () => void;
   onAdminLogout?: () => void;
   onOpenColorSchemeModal?: () => void;
+  onOpenExcelBackupModal?: () => void;
 }
 
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
@@ -33,6 +34,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onAdminLoginClick,
   onAdminLogout,
   onOpenColorSchemeModal,
+  onOpenExcelBackupModal,
 }) => {
   const isFullAdmin = currentRole === 'admin' && isAdminLoggedIn && !isCoachRole;
   return (
@@ -154,6 +156,16 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                 </div>
               )}
             </>
+          )}
+
+          {onOpenExcelBackupModal && isFullAdmin && (
+            <button
+              onClick={onOpenExcelBackupModal}
+              className="p-2 bg-slate-950 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border border-slate-800 hover:border-emerald-500/40 rounded-xl relative transition-all"
+              title="Backup & Restore Data Excel (.xlsx)"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+            </button>
           )}
 
           {onOpenColorSchemeModal && (

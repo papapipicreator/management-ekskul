@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, Download, ClipboardCheck, Target, CreditCard, Award, CheckCircle2, School as SchoolIcon } from 'lucide-react';
-import { StudentAttendance, ArcheryScoreRecord, SppPayment, Student, School } from '../../types';
+import { FileSpreadsheet, Download, ClipboardCheck, Target, CreditCard, Award, Database, Upload, FileUp, CheckCircle2 } from 'lucide-react';
+import { StudentAttendance, ArcheryScoreRecord, SppPayment, Student, School, Coach, Schedule } from '../../types';
+import { exportFullDatabaseToExcel } from '../../utils/excelBackupUtils';
 import {
   exportAttendanceToPdf,
   exportAttendanceToExcel,
@@ -17,7 +18,10 @@ interface ReportExportViewProps {
   payments: SppPayment[];
   students: Student[];
   schools: School[];
+  coaches?: Coach[];
+  schedules?: Schedule[];
   selectedSchoolId: string;
+  onOpenExcelBackupModal?: () => void;
 }
 
 export const ReportExportView: React.FC<ReportExportViewProps> = ({
@@ -26,7 +30,10 @@ export const ReportExportView: React.FC<ReportExportViewProps> = ({
   payments,
   students,
   schools,
+  coaches = [],
+  schedules = [],
   selectedSchoolId,
+  onOpenExcelBackupModal,
 }) => {
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<string>(students[0]?.id || '');
   const activeStudent = students.find((s) => s.id === selectedStudentForReport) || students[0];
@@ -52,14 +59,96 @@ export const ReportExportView: React.FC<ReportExportViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
-          Pusat Export Laporan Administrasi Pelatih (PDF & Excel)
-        </h2>
-        <p className="text-xs text-slate-400">
-          Unduh laporan resmi kehadiran, hasil evaluasi skoring panahan, rekapitulasi keuangan SPP, serta kartu perkembangan bulanan orang tua.
-        </p>
+      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
+            Pusat Export Laporan & Backup Data Excel
+          </h2>
+          <p className="text-xs text-slate-400">
+            Unduh laporan resmi kehadiran, hasil evaluasi skoring, rekapitulasi SPP, atau cadangkan/pulihkan seluruh database aplikasi via Excel.
+          </p>
+        </div>
+        {onOpenExcelBackupModal && (
+          <button
+            onClick={onOpenExcelBackupModal}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-md transition-all shrink-0"
+          >
+            <Database className="w-4 h-4 text-emerald-200" /> Kelola Backup & Restore Excel
+          </button>
+        )}
+      </div>
+
+      {/* Featured Full Database Excel Backup & Restore Card */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-500/30 rounded-3xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-emerald-400">
+          <Database className="w-48 h-48" />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                Fitur Utama 2026
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">7-Sheet Excel Master</span>
+            </div>
+            <h3 className="text-lg font-black text-white flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-emerald-400" /> Download & Restore Database Lengkap (Excel)
+            </h3>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              Ekspor seluruh data aplikasi (Sekolah, Siswa, Pelatih, Jadwal, Presensi, Skor, & SPP) ke dalam satu file Excel multi-sheet, atau unggah kembali file Excel untuk memulihkan (restore) data secara instan.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0 relative z-10">
+            <button
+              onClick={() => exportFullDatabaseToExcel({ schools, students, coaches, schedules, attendance, scores, payments })}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all"
+            >
+              <Download className="w-4 h-4" /> Download Full Excel (.xlsx)
+            </button>
+            {onOpenExcelBackupModal && (
+              <button
+                onClick={onOpenExcelBackupModal}
+                className="px-4 py-3 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all"
+              >
+                <Upload className="w-4 h-4" /> Restore Data dari Excel
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 pt-3 border-t border-slate-800/80 text-[11px] relative z-10">
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Sekolah</span>
+            <span className="font-bold text-emerald-400">{schools.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Siswa</span>
+            <span className="font-bold text-sky-400">{students.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Pelatih</span>
+            <span className="font-bold text-purple-400">{coaches.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Jadwal</span>
+            <span className="font-bold text-amber-400">{schedules.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Presensi</span>
+            <span className="font-bold text-slate-200">{attendance.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">Skor</span>
+            <span className="font-bold text-rose-400">{scores.length} Data</span>
+          </div>
+          <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 text-center">
+            <span className="text-slate-400 block text-[9px] uppercase font-semibold">SPP</span>
+            <span className="font-bold text-emerald-400">{payments.length} Data</span>
+          </div>
+        </div>
       </div>
 
       {/* 4 Major Export Cards Grid */}

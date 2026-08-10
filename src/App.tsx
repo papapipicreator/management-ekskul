@@ -38,6 +38,7 @@ import { ArcheryScoring } from './components/admin/ArcheryScoring';
 import { PaymentManagement } from './components/admin/PaymentManagement';
 import { StudentSchoolManagement } from './components/admin/StudentSchoolManagement';
 import { ReportExportView } from './components/admin/ReportExportView';
+import { ExcelDataBackupModal } from './components/admin/ExcelDataBackupModal';
 
 import { StudentPortal } from './components/student/StudentPortal';
 import { ParentPortal } from './components/parent/ParentPortal';
@@ -214,6 +215,98 @@ export default function App() {
   // Modals
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  const [isExcelBackupModalOpen, setIsExcelBackupModalOpen] = useState(false);
+
+  // Restore Excel Data Handler
+  const handleRestoreExcelData = (
+    restored: {
+      schools?: School[];
+      students?: Student[];
+      coaches?: Coach[];
+      schedules?: Schedule[];
+      attendance?: StudentAttendance[];
+      scores?: ArcheryScoreRecord[];
+      payments?: SppPayment[];
+    },
+    mode: 'merge' | 'replace'
+  ) => {
+    if (restored.schools && restored.schools.length > 0) {
+      let nextSchools = restored.schools;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, School>(schools.map((s) => [s.id, s]));
+        restored.schools.forEach((s) => existingMap.set(s.id, s));
+        nextSchools = Array.from(existingMap.values());
+      }
+      setSchools(nextSchools);
+      StorageService.saveSchools(nextSchools);
+    }
+
+    if (restored.students && restored.students.length > 0) {
+      let nextStudents = restored.students;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, Student>(students.map((st) => [st.id, st]));
+        restored.students.forEach((st) => existingMap.set(st.id, st));
+        nextStudents = Array.from(existingMap.values());
+      }
+      setStudents(nextStudents);
+      StorageService.saveStudents(nextStudents);
+    }
+
+    if (restored.coaches && restored.coaches.length > 0) {
+      let nextCoaches = restored.coaches;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, Coach>(coaches.map((c) => [c.id, c]));
+        restored.coaches.forEach((c) => existingMap.set(c.id, c));
+        nextCoaches = Array.from(existingMap.values());
+      }
+      setCoaches(nextCoaches);
+      StorageService.saveCoaches(nextCoaches);
+    }
+
+    if (restored.schedules && restored.schedules.length > 0) {
+      let nextSchedules = restored.schedules;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, Schedule>(schedules.map((sch) => [sch.id, sch]));
+        restored.schedules.forEach((sch) => existingMap.set(sch.id, sch));
+        nextSchedules = Array.from(existingMap.values());
+      }
+      setSchedules(nextSchedules);
+      StorageService.saveSchedules(nextSchedules);
+    }
+
+    if (restored.attendance && restored.attendance.length > 0) {
+      let nextAtt = restored.attendance;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, StudentAttendance>(attendance.map((att) => [att.id, att]));
+        restored.attendance.forEach((att) => existingMap.set(att.id, att));
+        nextAtt = Array.from(existingMap.values());
+      }
+      setAttendance(nextAtt);
+      StorageService.saveStudentAttendance(nextAtt);
+    }
+
+    if (restored.scores && restored.scores.length > 0) {
+      let nextScores = restored.scores;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, ArcheryScoreRecord>(scores.map((sc) => [sc.id, sc]));
+        restored.scores.forEach((sc) => existingMap.set(sc.id, sc));
+        nextScores = Array.from(existingMap.values());
+      }
+      setScores(nextScores);
+      StorageService.saveScores(nextScores);
+    }
+
+    if (restored.payments && restored.payments.length > 0) {
+      let nextPayments = restored.payments;
+      if (mode === 'merge') {
+        const existingMap = new Map<string, SppPayment>(payments.map((p) => [p.id, p]));
+        restored.payments.forEach((p) => existingMap.set(p.id, p));
+        nextPayments = Array.from(existingMap.values());
+      }
+      setPayments(nextPayments);
+      StorageService.savePayments(nextPayments);
+    }
+  };
 
   // Handlers
   const handleSaveScore = (record: ArcheryScoreRecord) => {
@@ -464,6 +557,7 @@ export default function App() {
         onAdminLoginClick={() => setIsAdminLoginModalOpen(true)}
         onAdminLogout={() => setIsAdminLoggedIn(false)}
         onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}
+        onOpenExcelBackupModal={() => setIsExcelBackupModalOpen(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
@@ -546,14 +640,22 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {!isCoachRole && (
-                  <button
-                    onClick={() => setIsUserManagementModalOpen(true)}
-                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
-                  >
-                    <UserPlus className="w-4 h-4" /> Kelola & Tambah User
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setIsExcelBackupModalOpen(true)}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-200" /> Backup & Restore Excel
+                    </button>
+                    <button
+                      onClick={() => setIsUserManagementModalOpen(true)}
+                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                    >
+                      <UserPlus className="w-4 h-4" /> Kelola User
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={() => setIsColorSchemeModalOpen(true)}
@@ -754,7 +856,10 @@ export default function App() {
                 payments={payments}
                 students={students}
                 schools={schools}
+                coaches={coaches}
+                schedules={schedules}
                 selectedSchoolId={selectedSchoolId}
+                onOpenExcelBackupModal={() => setIsExcelBackupModalOpen(true)}
               />
             )}
           </div>
@@ -846,6 +951,19 @@ export default function App() {
         onClose={() => setIsColorSchemeModalOpen(false)}
         currentColorScheme={currentColorScheme}
         onSelectColorScheme={setCurrentColorScheme}
+      />
+
+      <ExcelDataBackupModal
+        isOpen={isExcelBackupModalOpen}
+        onClose={() => setIsExcelBackupModalOpen(false)}
+        schools={schools}
+        students={students}
+        coaches={coaches}
+        schedules={schedules}
+        attendance={attendance}
+        scores={scores}
+        payments={payments}
+        onRestoreData={handleRestoreExcelData}
       />
     </div>
   );

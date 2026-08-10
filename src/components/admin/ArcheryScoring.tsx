@@ -47,16 +47,16 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
 
   const [bowType, setBowType] = useState<BowType>(activeStudent?.bowType || 'Standard Bow');
   const [distance, setDistance] = useState<TargetDistance>(activeStudent?.targetDistance || '20m');
-  const [coachNotes, setCoachNotes] = useState<string>('Grouping sangat baik pada lingkaran emas dan merah. Pertahankan ritme release.');
+  const [coachNotes, setCoachNotes] = useState<string>('');
 
-  // Ends scoring state (6 Ends, each 6 arrows)
+  // Ends scoring state (6 Ends, each 6 arrows) initialized empty
   const [ends, setEnds] = useState<(number | string)[][]>([
-    ['X', 10, 9, 8, 8, 7], // End 1
-    ['X', 'X', 9, 9, 8, 8], // End 2
-    [10, 9, 8, 8, 7, 7], // End 3
-    ['X', 10, 10, 9, 8, 7], // End 4
-    [9, 9, 8, 8, 7, 6], // End 5
-    ['X', 9, 9, 8, 8, 8], // End 6
+    [], // End 1
+    [], // End 2
+    [], // End 3
+    [], // End 4
+    [], // End 5
+    [], // End 6
   ]);
 
   const [activeEndIndex, setActiveEndIndex] = useState<number>(0);
@@ -88,6 +88,11 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
     const newEnds = [...ends];
     newEnds[activeEndIndex] = [];
     setEnds(newEnds);
+  };
+
+  const handleResetAllEnds = () => {
+    setEnds([[], [], [], [], [], []]);
+    setActiveEndIndex(0);
   };
 
   // Score calculations
@@ -130,6 +135,8 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
 
     onSaveScore(newRecord);
     alert(`✅ Skor Panahan ${activeStudent.name} (Total: ${totalScore}) berhasil disimpan!`);
+    setEnds([[], [], [], [], [], []]);
+    setCoachNotes('');
     setActiveTab('history');
   };
 
@@ -337,13 +344,22 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-300">Pilih Seri (End 1 s/d 6):</span>
-                <button
-                  type="button"
-                  onClick={handleClearCurrentEnd}
-                  className="text-[10px] text-rose-400 hover:underline flex items-center gap-1"
-                >
-                  <RefreshCw className="w-3 h-3" /> Hapus End Ini
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClearCurrentEnd}
+                    className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Hapus End Ini
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetAllEnds}
+                    className="text-[10px] text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Reset Semua End
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-6 gap-2">
                 {[0, 1, 2, 3, 4, 5].map((idx) => {
