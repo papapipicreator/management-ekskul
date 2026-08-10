@@ -36,11 +36,22 @@ export const ReportExportView: React.FC<ReportExportViewProps> = ({
   onOpenExcelBackupModal,
 }) => {
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<string>(students[0]?.id || '');
+  const [attendanceSchoolFilter, setAttendanceSchoolFilter] = useState<string>(selectedSchoolId || 'ALL');
+
   const activeStudent = students.find((s) => s.id === selectedStudentForReport) || students[0];
 
   const activeSchoolName = selectedSchoolId === 'ALL'
     ? 'Semua Sekolah'
     : schools.find((s) => s.id === selectedSchoolId)?.name || 'Sekolah Panahan';
+
+  const selectedAttendanceSchool = schools.find((s) => s.id === attendanceSchoolFilter);
+  const selectedAttendanceSchoolName = attendanceSchoolFilter === 'ALL'
+    ? 'Semua Sekolah'
+    : selectedAttendanceSchool?.name || 'Sekolah Panahan';
+
+  const exportAttendanceList = attendanceSchoolFilter === 'ALL'
+    ? attendance
+    : attendance.filter((a) => a.schoolId === attendanceSchoolFilter);
 
   const filteredAttendance = selectedSchoolId === 'ALL' ? attendance : attendance.filter((a) => a.schoolId === selectedSchoolId);
   const filteredScores = selectedSchoolId === 'ALL' ? scores : scores.filter((s) => s.schoolId === selectedSchoolId);
@@ -155,25 +166,48 @@ export const ReportExportView: React.FC<ReportExportViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card 1: Attendance Report */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm flex flex-col justify-between">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
               <ClipboardCheck className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white">Laporan Rekapitulasi Presensi Kehadiran</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Memuat data kehadiran presensi siswa dan pelatih per sesi latihan, jumlah jam masuk, serta catatan ketidakhadiran ({filteredAttendance.length} catatan).
-            </p>
+            <div>
+              <h3 className="text-base font-bold text-white">Laporan Presensi Kehadiran Siswa Berdasarkan Sekolah</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                Data yang terunduh mencakup: <strong className="text-emerald-300">Nama Siswa, Kelas, Hari Latihan, Tanggal Latihan, & Data Kehadiran</strong> ({exportAttendanceList.length} catatan).
+              </p>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Pilih Sekolah Untuk Diunduh:
+              </label>
+              <select
+                value={attendanceSchoolFilter}
+                onChange={(e) => setAttendanceSchoolFilter(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 font-bold"
+              >
+                <option value="ALL">🏢 Semua Sekolah ({attendance.length} Record)</option>
+                {schools.map((sch) => {
+                  const cnt = attendance.filter((a) => a.schoolId === sch.id).length;
+                  return (
+                    <option key={sch.id} value={sch.id}>
+                      {sch.name} ({cnt} Data Presensi)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4 border-t border-slate-800">
             <button
-              onClick={() => exportAttendanceToPdf(filteredAttendance, students, activeSchoolName)}
+              onClick={() => exportAttendanceToPdf(exportAttendanceList, students, selectedAttendanceSchoolName)}
               className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition-all"
             >
               <Download className="w-4 h-4" /> Export PDF
             </button>
             <button
-              onClick={() => exportAttendanceToExcel(filteredAttendance, students, activeSchoolName)}
+              onClick={() => exportAttendanceToExcel(exportAttendanceList, students, selectedAttendanceSchoolName)}
               className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow transition-all"
             >
               <FileSpreadsheet className="w-4 h-4" /> Export Excel

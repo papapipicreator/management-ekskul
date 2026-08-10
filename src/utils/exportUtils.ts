@@ -8,31 +8,48 @@ export const exportAttendanceToPdf = (
   students: Student[],
   schoolName: string = 'Semua Sekolah'
 ) => {
+  const getDayName = (dateStr: string) => {
+    if (!dateStr) return '-';
+    try {
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '-';
+      return days[d.getDay()];
+    } catch {
+      return '-';
+    }
+  };
+
   const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text('PANAHAN BANDUNG - LAPORAN PRESENSI LATIHAN PANAHAN', 14, 15);
+  doc.setFontSize(15);
+  doc.text('PANAHAN BANDUNG - LAPORAN PRESENSI KEHADIRAN SISWA', 14, 15);
   doc.setFontSize(10);
   doc.text(`Sekolah: ${schoolName} | Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 14, 22);
 
-  const tableData = records.map((r, idx) => [
-    idx + 1,
-    r.date,
-    r.studentName,
-    r.schoolName,
-    r.status,
-    r.timeIn || '-',
-    r.method,
-  ]);
+  const tableData = records.map((r, idx) => {
+    const student = students.find((s) => s.id === r.studentId || s.name.toLowerCase() === r.studentName.toLowerCase());
+    const kelas = student?.grade || student?.classGrade || '–';
+    const hari = getDayName(r.date);
+    return [
+      idx + 1,
+      r.studentName,
+      kelas,
+      r.schoolName || schoolName,
+      `${hari}, ${r.date}`,
+      r.status,
+      r.timeIn || '-',
+    ];
+  });
 
   autoTable(doc, {
     startY: 28,
-    head: [['No', 'Tanggal', 'Nama Siswa', 'Sekolah', 'Status Presensi', 'Waktu Masuk', 'Metode']],
+    head: [['No', 'Nama Siswa', 'Kelas', 'Sekolah', 'Hari & Tgl Latihan', 'Data Kehadiran', 'Jam Masuk']],
     body: tableData,
     theme: 'grid',
     headStyles: { fillColor: [16, 185, 129] },
   });
 
-  doc.save(`Presensi_Panahan_${schoolName.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`Presensi_Siswa_${schoolName.replace(/\s+/g, '_')}.pdf`);
 };
 
 export const exportAttendanceToExcel = (
@@ -40,20 +57,38 @@ export const exportAttendanceToExcel = (
   students: Student[],
   schoolName: string = 'Semua Sekolah'
 ) => {
-  const data = records.map((r, idx) => ({
-    No: idx + 1,
-    Tanggal: r.date,
-    'Nama Siswa': r.studentName,
-    Sekolah: r.schoolName,
-    'Status Presensi': r.status,
-    'Jam Masuk': r.timeIn || '-',
-    Metode: r.method,
-  }));
+  const getDayName = (dateStr: string) => {
+    if (!dateStr) return '-';
+    try {
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '-';
+      return days[d.getDay()];
+    } catch {
+      return '-';
+    }
+  };
+
+  const data = records.map((r, idx) => {
+    const student = students.find((s) => s.id === r.studentId || s.name.toLowerCase() === r.studentName.toLowerCase());
+    const kelas = student?.grade || student?.classGrade || '–';
+    return {
+      No: idx + 1,
+      'Nama Siswa': r.studentName,
+      Kelas: kelas,
+      'Nama Sekolah': r.schoolName || schoolName,
+      'Hari Latihan': getDayName(r.date),
+      'Tanggal Latihan': r.date,
+      'Data Kehadiran': r.status,
+      'Jam Masuk': r.timeIn || '-',
+      Metode: r.method || 'Manual',
+    };
+  });
 
   const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Presensi');
-  XLSX.writeFile(workbook, `Presensi_Panahan_${schoolName.replace(/\s+/g, '_')}.xlsx`);
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Presensi Siswa');
+  XLSX.writeFile(workbook, `Data_Presensi_Siswa_${schoolName.replace(/\s+/g, '_')}.xlsx`);
 };
 
 export const exportScoresToPdf = (

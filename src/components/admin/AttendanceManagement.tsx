@@ -30,10 +30,25 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
   const [date, setDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [downloadSchoolId, setDownloadSchoolId] = useState<string>(selectedSchoolId || 'ALL');
 
   const [materiInput, setMateriInput] = useState<string>('');
   const [evaluasiInput, setEvaluasiInput] = useState<string>('');
   const [isMateriSaved, setIsMateriSaved] = useState<boolean>(false);
+
+  const handleDownloadSchoolAttendance = (type: 'excel' | 'pdf') => {
+    const targetSchool = schools.find((s) => s.id === downloadSchoolId);
+    const schoolName = downloadSchoolId === 'ALL' ? 'Semua Sekolah' : (targetSchool?.name || 'Sekolah Panahan');
+    const recordsToExport = downloadSchoolId === 'ALL'
+      ? attendance
+      : attendance.filter((a) => a.schoolId === downloadSchoolId);
+
+    if (type === 'excel') {
+      exportAttendanceToExcel(recordsToExport, students, schoolName);
+    } else {
+      exportAttendanceToPdf(recordsToExport, students, schoolName);
+    }
+  };
 
   React.useEffect(() => {
     if (schedules.length > 0 && !schedules.some((s) => s.id === selectedScheduleId)) {
@@ -150,6 +165,49 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
             title="Export Excel"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Download Presensi Kehadiran Siswa Per Sekolah Banner */}
+      <div className="bg-slate-900 border border-emerald-500/30 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-1">
+          <h3 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 uppercase tracking-wide">
+            <Download className="w-4 h-4" /> Download Data Presensi Kehadiran Siswa Per Sekolah
+          </h3>
+          <p className="text-[11px] text-slate-300">
+            Mencakup data: <strong className="text-white">Nama Siswa, Kelas, Hari Latihan, Tanggal Latihan, & Data Kehadiran</strong>.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={downloadSchoolId}
+            onChange={(e) => setDownloadSchoolId(e.target.value)}
+            className="bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="ALL">🏢 Semua Sekolah ({attendance.length} Record)</option>
+            {schools.map((sch) => {
+              const count = attendance.filter((a) => a.schoolId === sch.id).length;
+              return (
+                <option key={sch.id} value={sch.id}>
+                  {sch.name} ({count} Data)
+                </option>
+              );
+            })}
+          </select>
+
+          <button
+            onClick={() => handleDownloadSchoolAttendance('excel')}
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition-all"
+          >
+            <FileSpreadsheet className="w-4 h-4" /> Download Excel (.xlsx)
+          </button>
+          <button
+            onClick={() => handleDownloadSchoolAttendance('pdf')}
+            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow transition-all"
+          >
+            <Download className="w-4 h-4" /> Download PDF (.pdf)
           </button>
         </div>
       </div>
