@@ -109,7 +109,7 @@ export const INITIAL_STUDENTS: Student[] = [
 export const INITIAL_COACHES: Coach[] = [
   {
     id: 'coach-1',
-    name: 'Coach Coach Subhan, S.Pd., S.Or.',
+    name: 'Coach Subhan, S.Pd., S.Or.',
     licenseNumber: 'PERPANI-NAT-2023-089',
     assignedSchools: ['sch-1', 'sch-2'],
     phone: '081122334455',

@@ -67,13 +67,16 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
       const assignedCoaches = coaches.filter((c) => c.assignedSchools.includes(activeSchedule.schoolId));
       const schObj = schools.find((s) => s.id === activeSchedule.schoolId);
 
-      // Find matching coach
-      let matchedCoach = coaches.find((c) => c.id === activeSchedule.coachId);
-      if (!matchedCoach && activeSchedule.coachName) {
-        matchedCoach = coaches.find((c) => c.name.toLowerCase() === activeSchedule.coachName.toLowerCase());
-      }
+      // Find matching coach: prioritize coach assigned to this school
+      let matchedCoach = assignedCoaches.find((c) => c.id === activeSchedule.coachId || c.name.toLowerCase() === activeSchedule.coachName?.toLowerCase());
       if (!matchedCoach && assignedCoaches.length > 0) {
         matchedCoach = assignedCoaches[0];
+      }
+      if (!matchedCoach && activeSchedule.coachId) {
+        matchedCoach = coaches.find((c) => c.id === activeSchedule.coachId);
+      }
+      if (!matchedCoach && activeSchedule.coachName) {
+        matchedCoach = coaches.find((c) => c.name.toLowerCase() === activeSchedule.coachName.toLowerCase());
       }
       if (!matchedCoach && schObj?.headCoach) {
         matchedCoach = coaches.find((c) => schObj.headCoach?.toLowerCase().includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(schObj.headCoach?.toLowerCase()));
@@ -85,7 +88,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
       setCoachNameInput(matchedCoach ? matchedCoach.name : (activeSchedule.coachName || schObj?.headCoach || 'Pelatih Kepala'));
       setIsMateriSaved(false);
     }
-  }, [activeSchedule?.id, activeSchedule?.schoolId]);
+  }, [activeSchedule?.id, activeSchedule?.schoolId, coaches]);
 
   const handleSaveMateri = (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,11 +253,15 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
             onChange={(e) => setSelectedScheduleId(e.target.value)}
             className="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-emerald-500 font-bold"
           >
-            {schedules.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.schoolName} - {s.dayOfWeek} ({s.timeSlot})
-              </option>
-            ))}
+            {schedules.map((s) => {
+              const assigned = coaches.filter((c) => c.assignedSchools.includes(s.schoolId));
+              const displayCoachName = assigned.length > 0 ? assigned[0].name : (s.coachName || 'Pelatih');
+              return (
+                <option key={s.id} value={s.id}>
+                  {s.schoolName} - {s.dayOfWeek} ({s.timeSlot}) • Coach: {displayCoachName}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -425,7 +432,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
               Daftar Presensi Atlet Siswa ({filteredStudents.length} Siswa)
             </h3>
             <p className="text-[11px] text-slate-400">
-              {activeSchedule?.schoolName} • {activeSchedule?.location} • Pelatih: {activeSchedule?.coachName}
+              {activeSchedule?.schoolName} • {activeSchedule?.location} • Pelatih: <strong className="text-emerald-300 font-semibold">{coachNameInput || activeSchedule?.coachName}</strong>
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs">
