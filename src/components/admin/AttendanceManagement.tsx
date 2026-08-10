@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ClipboardCheck, QrCode, CheckCircle2, XCircle, Clock, AlertCircle, Plus, Download, FileSpreadsheet, Send, Search, Filter, BookOpen, Save, BookMarked } from 'lucide-react';
-import { StudentAttendance, Student, Schedule, School, SystemNotification } from '../../types';
+import { ClipboardCheck, QrCode, CheckCircle2, XCircle, Clock, AlertCircle, Plus, Download, FileSpreadsheet, Send, Search, Filter, BookOpen, Save, BookMarked, User } from 'lucide-react';
+import { StudentAttendance, Student, Schedule, School, SystemNotification, Coach } from '../../types';
 import { exportAttendanceToPdf, exportAttendanceToExcel } from '../../utils/exportUtils';
 
 interface AttendanceManagementProps {
@@ -8,6 +8,7 @@ interface AttendanceManagementProps {
   students: Student[];
   schedules: Schedule[];
   schools: School[];
+  coaches?: Coach[];
   onMarkAttendance: (record: StudentAttendance) => void;
   onSendNotification: (notif: SystemNotification) => void;
   onUpdateSchedule?: (schedule: Schedule) => void;
@@ -20,6 +21,7 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
   students,
   schedules,
   schools,
+  coaches = [],
   onMarkAttendance,
   onSendNotification,
   onUpdateSchedule,
@@ -34,6 +36,8 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
 
   const [materiInput, setMateriInput] = useState<string>('');
   const [evaluasiInput, setEvaluasiInput] = useState<string>('');
+  const [coachNameInput, setCoachNameInput] = useState<string>('');
+  const [coachIdInput, setCoachIdInput] = useState<string>('');
   const [isMateriSaved, setIsMateriSaved] = useState<boolean>(false);
 
   const handleDownloadSchoolAttendance = (type: 'excel' | 'pdf') => {
@@ -60,18 +64,41 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
 
   React.useEffect(() => {
     if (activeSchedule) {
+      const assignedCoaches = coaches.filter((c) => c.assignedSchools.includes(activeSchedule.schoolId));
+      const schObj = schools.find((s) => s.id === activeSchedule.schoolId);
+
+      // Find matching coach
+      let matchedCoach = coaches.find((c) => c.id === activeSchedule.coachId);
+      if (!matchedCoach && activeSchedule.coachName) {
+        matchedCoach = coaches.find((c) => c.name.toLowerCase() === activeSchedule.coachName.toLowerCase());
+      }
+      if (!matchedCoach && assignedCoaches.length > 0) {
+        matchedCoach = assignedCoaches[0];
+      }
+      if (!matchedCoach && schObj?.headCoach) {
+        matchedCoach = coaches.find((c) => schObj.headCoach?.toLowerCase().includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(schObj.headCoach?.toLowerCase()));
+      }
+
       setMateriInput(activeSchedule.materiLatihan || activeSchedule.targetFocus || '');
       setEvaluasiInput(activeSchedule.evaluasiLatihan || '');
+      setCoachIdInput(matchedCoach ? matchedCoach.id : (activeSchedule.coachId || 'custom'));
+      setCoachNameInput(matchedCoach ? matchedCoach.name : (activeSchedule.coachName || schObj?.headCoach || 'Pelatih Kepala'));
       setIsMateriSaved(false);
     }
-  }, [activeSchedule?.id]);
+  }, [activeSchedule?.id, activeSchedule?.schoolId]);
 
   const handleSaveMateri = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeSchedule) return;
 
+    const selectedCoachObj = coaches.find((c) => c.id === coachIdInput);
+    const finalCoachName = selectedCoachObj ? selectedCoachObj.name : (coachNameInput || activeSchedule.coachName);
+    const finalCoachId = selectedCoachObj ? selectedCoachObj.id : (coachIdInput !== 'custom' ? coachIdInput : activeSchedule.coachId);
+
     const updatedSchd: Schedule = {
       ...activeSchedule,
+      coachId: finalCoachId,
+      coachName: finalCoachName,
       materiLatihan: materiInput,
       evaluasiLatihan: evaluasiInput,
     };
@@ -261,67 +288,134 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
       </div>
 
       {/* Form Jurnal & Materi Latihan Pelatih */}
-      {activeSchedule && (
-        <form onSubmit={handleSaveMateri} className="bg-slate-900 border border-emerald-500/30 p-5 rounded-2xl space-y-3 shadow-md animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-emerald-400" />
-                Form Isian Materi Latihan Pelatih
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Sesi: <strong className="text-emerald-400">{activeSchedule.schoolName}</strong> ({activeSchedule.date || date}) • Pelatih: <strong className="text-slate-200">{activeSchedule.coachName}</strong>
-              </p>
-            </div>
-            <button
-              type="submit"
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
-                isMateriSaved
-                  ? 'bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30'
-                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40'
-              }`}
-            >
-              {isMateriSaved ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4" /> Materi Disimpan!
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" /> Simpan Materi Latihan
-                </>
-              )}
-            </button>
-          </div>
+      {activeSchedule && (() => {
+        const schoolCoaches = coaches.filter((c) => c.assignedSchools.includes(activeSchedule.schoolId));
+        const otherCoaches = coaches.filter((c) => !c.assignedSchools.includes(activeSchedule.schoolId));
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div>
-              <label className="text-xs font-semibold text-emerald-300 block mb-1">
-                Rincian Materi Latihan yang Diberikan:
-              </label>
-              <textarea
-                value={materiInput}
-                onChange={(e) => setMateriInput(e.target.value)}
-                rows={3}
-                placeholder="Contoh:&#10;1. Pemanasan & Stretching bahu (15 mnt)&#10;2. Drill teknik Anchor & Release jarak 18 meter&#10;3. Skoring 3 End (18 anak panah)"
-                className="w-full bg-slate-950/80 border border-emerald-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 leading-relaxed font-mono"
-              />
+        return (
+          <form onSubmit={handleSaveMateri} className="bg-slate-900 border border-emerald-500/30 p-5 rounded-2xl space-y-4 shadow-md animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-400" />
+                  Form Isian Materi Latihan Pelatih
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Sekolah: <strong className="text-emerald-400">{activeSchedule.schoolName}</strong> ({activeSchedule.date || date}) • Coach: <strong className="text-emerald-300 font-bold">{coachNameInput || activeSchedule.coachName}</strong>
+                </p>
+              </div>
+              <button
+                type="submit"
+                className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+                  isMateriSaved
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/30'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40'
+                }`}
+              >
+                {isMateriSaved ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" /> Materi & Pelatih Disimpan!
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" /> Simpan Materi Latihan
+                  </>
+                )}
+              </button>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-amber-300 block mb-1">
-                Evaluasi / Catatan Hasil Latihan Pelatih:
-              </label>
-              <textarea
-                value={evaluasiInput}
-                onChange={(e) => setEvaluasiInput(e.target.value)}
-                rows={3}
-                placeholder="Contoh:&#10;Para atlet pemula sudah menguasai stance, namun perlu latihan ekstra untuk konsistensi drawing hand..."
-                className="w-full bg-slate-950/80 border border-amber-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-amber-500 leading-relaxed font-mono"
-              />
+            {/* Coach Selection per School */}
+            <div className="bg-slate-950/70 border border-slate-800 p-3 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <label className="text-xs font-bold text-white block">
+                    Pelatih Mengajar (Coach):
+                  </label>
+                  <p className="text-[11px] text-slate-400">
+                    Pilih nama pelatih yang bertugas mengajar di <span className="text-emerald-400 font-semibold">{activeSchedule.schoolName}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-2 min-w-[280px]">
+                <select
+                  value={coachIdInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCoachIdInput(val);
+                    const found = coaches.find((c) => c.id === val);
+                    if (found) {
+                      setCoachNameInput(found.name);
+                    }
+                  }}
+                  className="w-full bg-slate-900 border border-emerald-500/40 text-xs text-white rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-emerald-500"
+                >
+                  {schoolCoaches.length > 0 && (
+                    <optgroup label={`Pelatih Khusus ${activeSchedule.schoolName}`}>
+                      {schoolCoaches.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} {c.roleTitle ? `(${c.roleTitle})` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  {otherCoaches.length > 0 && (
+                    <optgroup label="Daftar Pelatih Lainnya">
+                      {otherCoaches.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  <option value="custom">✏️ Ketik Nama Pelatih Manual</option>
+                </select>
+
+                {coachIdInput === 'custom' && (
+                  <input
+                    type="text"
+                    value={coachNameInput}
+                    onChange={(e) => setCoachNameInput(e.target.value)}
+                    placeholder="Contoh: Coach Hendra, S.Pd"
+                    className="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 font-semibold"
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        </form>
-      )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div>
+                <label className="text-xs font-semibold text-emerald-300 block mb-1">
+                  Rincian Materi Latihan yang Diberikan:
+                </label>
+                <textarea
+                  value={materiInput}
+                  onChange={(e) => setMateriInput(e.target.value)}
+                  rows={3}
+                  placeholder="Contoh:&#10;1. Pemanasan & Stretching bahu (15 mnt)&#10;2. Drill teknik Anchor & Release jarak 18 meter&#10;3. Skoring 3 End (18 anak panah)"
+                  className="w-full bg-slate-950/80 border border-emerald-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 leading-relaxed font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-amber-300 block mb-1">
+                  Evaluasi / Catatan Hasil Latihan Pelatih:
+                </label>
+                <textarea
+                  value={evaluasiInput}
+                  onChange={(e) => setEvaluasiInput(e.target.value)}
+                  rows={3}
+                  placeholder="Contoh:&#10;Para atlet pemula sudah menguasai stance, namun perlu latihan ekstra untuk konsistensi drawing hand..."
+                  className="w-full bg-slate-950/80 border border-amber-500/30 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-amber-500 leading-relaxed font-mono"
+                />
+              </div>
+            </div>
+          </form>
+        );
+      })()}
 
       {/* Roster & Presensi Grid */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm">

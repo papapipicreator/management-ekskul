@@ -46,15 +46,33 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
     ? schedules
     : schedules.filter((s) => s.schoolId === selectedSchoolId);
 
+  const handleSchoolChange = (selectedSchId: string) => {
+    setSchoolId(selectedSchId);
+    const sch = schools.find((s) => s.id === selectedSchId);
+    if (sch) {
+      setLocation(sch.address || 'Lapangan Sekolah');
+    }
+    const assignedCoach = coaches.find((c) => c.assignedSchools.includes(selectedSchId));
+    if (assignedCoach) {
+      setCoachId(assignedCoach.id);
+    } else if (sch?.headCoach) {
+      const head = coaches.find((c) => c.name.toLowerCase().includes(sch.headCoach!.toLowerCase()) || sch.headCoach!.toLowerCase().includes(c.name.toLowerCase()));
+      if (head) setCoachId(head.id);
+    }
+  };
+
   const handleOpenAddModal = () => {
     setEditingSchedule(null);
-    setSchoolId(selectedSchoolId !== 'ALL' ? selectedSchoolId : schools[0]?.id || '');
+    const targetSchId = selectedSchoolId !== 'ALL' ? selectedSchoolId : schools[0]?.id || '';
+    setSchoolId(targetSchId);
     setTitle('Latihan Rutin Panahan');
     setDate('2026-08-15');
     setTimeStart('15:30');
     setTimeEnd('17:30');
-    setLocation('Lapangan Panahan Sekolah');
-    setCoachId(coaches[0]?.id || '');
+    const sch = schools.find((s) => s.id === targetSchId);
+    setLocation(sch ? sch.address : 'Lapangan Panahan Sekolah');
+    const assignedCoach = coaches.find((c) => c.assignedSchools.includes(targetSchId));
+    setCoachId(assignedCoach ? assignedCoach.id : (coaches[0]?.id || ''));
     setTargetFocus('Skoring & Grouping Anak Panah');
     setTargetDistance('20m');
     setMateriLatihan('1. Pemanasan & Stabilitas Bahu\n2. Drill Form Anchor & Release 18m\n3. Simulasi Skoring 6 End');
@@ -297,7 +315,7 @@ export const ScheduleManagement: React.FC<ScheduleManagementProps> = ({
                 </label>
                 <select
                   value={schoolId}
-                  onChange={(e) => setSchoolId(e.target.value)}
+                  onChange={(e) => handleSchoolChange(e.target.value)}
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-emerald-500"
                   required
                 >

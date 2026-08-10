@@ -804,6 +804,7 @@ export default function App() {
                 students={effectiveStudents}
                 schedules={effectiveSchedules}
                 schools={effectiveSchools}
+                coaches={coaches}
                 onMarkAttendance={handleMarkAttendance}
                 onSendNotification={handleSendNotification}
                 onUpdateSchedule={handleUpdateSchedule}
