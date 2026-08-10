@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Target, Award, CreditCard, QrCode, Calendar, CheckCircle2, TrendingUp, Download, Sparkles, AlertCircle } from 'lucide-react';
 import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule, BankAccountConfig } from '../../types';
 import { SppPaymentModal } from './SppPaymentModal';
+import { getStudentQrCodeImgUrl } from '../../utils/qrUtils';
 
 interface StudentPortalProps {
   student: Student;
@@ -72,9 +73,12 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
         </div>
 
         {/* Digital Member QR Code */}
-        <div className="bg-white p-3 rounded-2xl shadow-xl text-center space-y-1 text-slate-900">
-          <img src={student.qrCodeUrl} alt="QR Member" className="w-24 h-24 mx-auto" />
-          <p className="text-[10px] font-mono font-bold">NISN: {student.nisn}</p>
+        <div className="bg-white p-3.5 rounded-2xl shadow-xl text-center space-y-1.5 text-slate-900 border-2 border-emerald-500/30">
+          <img src={getStudentQrCodeImgUrl(student)} alt="QR Member" className="w-24 h-24 mx-auto" />
+          <div>
+            <p className="text-[10px] font-mono font-black text-slate-900">NISN: {student.nisn}</p>
+            <p className="text-[9px] font-bold text-emerald-700 uppercase tracking-tight">Direct Presensi HP</p>
+          </div>
         </div>
       </div>
 

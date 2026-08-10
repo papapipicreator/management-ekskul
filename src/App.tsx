@@ -217,6 +217,60 @@ export default function App() {
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
   const [isExcelBackupModalOpen, setIsExcelBackupModalOpen] = useState(false);
 
+  // Direct Smartphone Camera QR Scan URL Handler
+  const [directQrNotification, setDirectQrNotification] = useState<{
+    studentName: string;
+    schoolName: string;
+    time: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (students.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const qrStudentId = params.get('qrScanStudentId') || params.get('studentId');
+    const nisnParam = params.get('nisn');
+
+    if (qrStudentId || nisnParam) {
+      const foundStudent = students.find(
+        (s) => s.id === qrStudentId || s.nisn === nisnParam || s.id.includes(qrStudentId || '')
+      );
+
+      if (foundStudent) {
+        const matchingSchedule = schedules.find((sch) => sch.schoolId === foundStudent.schoolId) || schedules[0];
+        const schId = matchingSchedule ? matchingSchedule.id : 'sch-default';
+
+        const today = new Date().toISOString().substring(0, 10);
+        const timeNow = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        const record: StudentAttendance = {
+          id: `att-direct-${Date.now()}-${foundStudent.id}`,
+          scheduleId: schId,
+          studentId: foundStudent.id,
+          studentName: foundStudent.name,
+          schoolId: foundStudent.schoolId,
+          schoolName: foundStudent.schoolName,
+          date: today,
+          timeIn: timeNow,
+          status: 'Hadir',
+          method: 'Scan QR',
+          notes: 'Presensi otomatis via Scan QR Smartphone Langsung Terkoneksi',
+        };
+
+        handleMarkAttendance(record);
+
+        setDirectQrNotification({
+          studentName: foundStudent.name,
+          schoolName: foundStudent.schoolName,
+          time: timeNow,
+        });
+
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, [students.length, schedules.length]);
+
   // Restore Excel Data Handler
   const handleRestoreExcelData = (
     restored: {
@@ -533,6 +587,30 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${currentSchemeConfig.bgClass} ${currentSchemeConfig.textClass} font-sans antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-slate-950`}>
+      {/* Smartphone Direct QR Presensi Success Banner */}
+      {directQrNotification && (
+        <div className="bg-emerald-600 text-white px-4 py-3 shadow-2xl flex items-center justify-between z-50 border-b border-emerald-400 animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-6 h-6 text-emerald-200 shrink-0" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-emerald-100 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                Presensi QR Smartphone Terkoneksi Ke Sistem
+              </p>
+              <p className="text-sm font-bold">
+                {directQrNotification.studentName} ({directQrNotification.schoolName}) - Hadir Jam {directQrNotification.time}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setDirectQrNotification(null)}
+            className="p-1.5 hover:bg-emerald-700 rounded-lg text-emerald-100 font-bold text-xs transition-all"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
+
       {/* Top Header Navbar */}
       <HeaderNavbar
         currentRole={currentRole}

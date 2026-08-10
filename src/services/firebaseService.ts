@@ -62,7 +62,17 @@ export const FirebaseService = {
         }
       },
       (error) => {
-        console.error(`Error subscribing to Firestore collection ${collectionName}:`, error);
+        console.warn(`Firestore collection ${collectionName} connection note (${error.code || 'offline'}): using local storage cache fallback.`);
+        try {
+          const cached = localStorage.getItem(`panahan_${collectionName}_v1`);
+          if (cached) {
+            onUpdate(JSON.parse(cached));
+          } else {
+            onUpdate(initialData);
+          }
+        } catch (e) {
+          onUpdate(initialData);
+        }
       }
     );
   },
@@ -91,7 +101,8 @@ export const FirebaseService = {
         }
       },
       (error) => {
-        console.error(`Error subscribing to doc ${collectionName}/${docId}:`, error);
+        console.warn(`Firestore doc ${collectionName}/${docId} connection note (${error.code || 'offline'}): using initial data fallback.`);
+        onUpdate(initialData);
       }
     );
   },

@@ -37,6 +37,7 @@ import {
   StudentAttendance,
   SppPayment
 } from '../../types';
+import { getStudentQrCodeImgUrl } from '../../utils/qrUtils';
 
 interface StudentDetailModalProps {
   student: Student;
@@ -333,7 +334,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     </h4>
 
                     <div className="bg-white p-4 rounded-2xl shadow-xl inline-block border-2 border-emerald-500/30">
-                      <img src={student.qrCodeUrl} alt="QR Code" className="w-32 h-32 mx-auto" />
+                      <img src={getStudentQrCodeImgUrl(student)} alt="QR Code" className="w-32 h-32 mx-auto" />
                       <p className="text-[10px] font-mono font-extrabold text-slate-900 mt-1">
                         STD-{student.nisn}
                       </p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { School as SchoolIcon, Users, UserPlus, Plus, Search, Edit3, Trash2, QrCode, Phone, MapPin, Award, Calendar, Clock, Target, UserCheck, Coins, Eye } from 'lucide-react';
 import { Student, School, Coach, Schedule, BowType, TargetDistance, ArcheryScoreRecord, StudentAttendance, SppPayment } from '../../types';
+import { getStudentQrCodeImgUrl } from '../../utils/qrUtils';
 import { StudentDetailModal } from './StudentDetailModal';
 
 interface StudentSchoolManagementProps {
@@ -224,12 +225,13 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
         targetDistance: newDistance,
         status: newStatus,
         avatarUrl: avatarToUse,
-        qrCodeUrl: editingStudent.qrCodeUrl || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=STD-${generatedNisn}`,
+        qrCodeUrl: getStudentQrCodeImgUrl({ id: editingStudent.id, nisn: generatedNisn, name: newStudentName } as Student),
       };
       onEditStudent?.(updated);
     } else {
+      const newStdId = `std-${Date.now()}`;
       const created: Student = {
-        id: `std-${Date.now()}`,
+        id: newStdId,
         name: newStudentName,
         nisn: generatedNisn,
         schoolId: sch.id,
@@ -239,7 +241,7 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
         parentPhone: newParentPhone,
         bowType: newBowType,
         targetDistance: newDistance,
-        qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=STD-${generatedNisn}`,
+        qrCodeUrl: getStudentQrCodeImgUrl({ id: newStdId, nisn: generatedNisn, name: newStudentName } as Student),
         joinDate: new Date().toISOString().substring(0, 10),
         status: newStatus || 'Aktif',
         avatarUrl: avatarToUse,
