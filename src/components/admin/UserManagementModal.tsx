@@ -42,7 +42,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'admin' | 'coach'>('coach');
+  const [role, setRole] = useState<'admin' | 'coach' | 'parent'>('coach');
   const [assignedSchoolIds, setAssignedSchoolIds] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -87,15 +87,21 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
       return;
     }
 
+    if (role === 'parent' && schools.length > 0 && assignedSchoolIds.length === 0) {
+      setErrorMsg('Harap pilih minimal 1 sekolah tempat anak bersekolah!');
+      return;
+    }
+
     onAddUser({
       name: name.trim(),
       username: cleanUsername,
       password: password,
       role: role,
-      assignedSchoolIds: role === 'coach' ? assignedSchoolIds : undefined,
+      assignedSchoolIds: (role === 'coach' || role === 'parent') ? assignedSchoolIds : undefined,
     });
 
-    setSuccessMsg(`User baru "${name.trim()}" (${role === 'admin' ? 'Admin' : 'Pelatih'}) berhasil dibuat!`);
+    const roleText = role === 'admin' ? 'Admin' : role === 'parent' ? 'Orang Tua' : 'Pelatih';
+    setSuccessMsg(`User baru "${name.trim()}" (${roleText}) berhasil dibuat!`);
     
     // Reset Form
     setName('');
@@ -122,7 +128,7 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-white">Kelola User & Hak Akses</h3>
-              <p className="text-xs text-slate-400">Tambah dan atur hak akses pengguna (Admin / Pelatih)</p>
+              <p className="text-xs text-slate-400">Tambah dan atur hak akses pengguna (Admin / Pelatih / Orang Tua)</p>
             </div>
           </div>
           <button
@@ -177,6 +183,8 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
           <div className="overflow-y-auto space-y-3 pr-1 flex-1">
             {users.map((u) => {
               const isAdmin = u.role === 'admin';
+              const isParent = u.role === 'parent';
+              const isCoach = u.role === 'coach';
               return (
                 <div
                   key={u.id}
@@ -187,10 +195,12 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                       className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
                         isAdmin
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                          : isParent
+                          ? 'bg-purple-500/10 text-purple-300 border border-purple-500/30'
                           : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                       }`}
                     >
-                      {isAdmin ? <ShieldCheck className="w-5 h-5" /> : <Award className="w-5 h-5" />}
+                      {isAdmin ? <ShieldCheck className="w-5 h-5" /> : isParent ? <User className="w-5 h-5" /> : <Award className="w-5 h-5" />}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -199,18 +209,20 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                             isAdmin
                               ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              : isParent
+                              ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
                               : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                           }`}
                         >
-                          {isAdmin ? 'Admin (Akses Penuh)' : 'Pelatih (Scoring & Presensi)'}
+                          {isAdmin ? 'Admin (Akses Penuh)' : isParent ? 'Orang Tua (Portal Wali)' : 'Pelatih (Scoring & Presensi)'}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                         Username: <span className="text-slate-200">{u.username}</span>
                       </p>
                       {!isAdmin && (
-                        <p className="text-[10px] text-amber-400/90 font-medium mt-1">
-                          Sekolah Dilatih:{' '}
+                        <p className={`text-[10px] font-medium mt-1 ${isParent ? 'text-purple-300/90' : 'text-amber-400/90'}`}>
+                          {isParent ? 'Sekolah Tempat Anak Bersekolah: ' : 'Sekolah Dilatih: '}
                           <span className="text-slate-300">
                             {u.assignedSchoolIds && u.assignedSchoolIds.length > 0
                               ? schools
@@ -334,11 +346,11 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 Pilih Peran User (Hak Akses):
               </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Option 1: Admin */}
                 <div
                   onClick={() => setRole('admin')}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     role === 'admin'
                       ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg'
                       : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -346,17 +358,17 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <ShieldCheck className={`w-4 h-4 ${role === 'admin' ? 'text-emerald-400' : 'text-slate-500'}`} />
-                    <span className="text-xs font-bold text-white">1. Sebagai Admin</span>
+                    <span className="text-xs font-bold text-white">1. Admin</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    Akses Penuh Seluruh Sistem (Kelola Sekolah, Siswa, SPP Online, Jadwal, Presensi, Scoring, Laporan, & Kelola User).
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    Akses Penuh Seluruh Sistem.
                   </p>
                 </div>
 
                 {/* Option 2: Pelatih */}
                 <div
                   onClick={() => setRole('coach')}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     role === 'coach'
                       ? 'bg-amber-950/40 border-amber-500 text-white shadow-lg'
                       : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -364,21 +376,51 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <Award className={`w-4 h-4 ${role === 'coach' ? 'text-amber-400' : 'text-slate-500'}`} />
-                    <span className="text-xs font-bold text-white">2. Sebagai Pelatih</span>
+                    <span className="text-xs font-bold text-white">2. Pelatih</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    Akses Terbatas: Hanya bisa membuka & mengedit <strong>Scoring Panahan</strong> dan <strong>Presensi Kehadiran</strong> saja.
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    Scoring Panahan & Presensi.
+                  </p>
+                </div>
+
+                {/* Option 3: Orang Tua */}
+                <div
+                  onClick={() => setRole('parent')}
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                    role === 'parent'
+                      ? 'bg-purple-950/40 border-purple-500 text-white shadow-lg'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <User className={`w-4 h-4 ${role === 'parent' ? 'text-purple-400' : 'text-slate-500'}`} />
+                    <span className="text-xs font-bold text-white">3. Orang Tua</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    Portal Wali (Akses Sekolah Anak).
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* School Selection for Coach */}
-            {role === 'coach' && (
-              <div className="space-y-2 bg-slate-950/90 border border-amber-500/30 p-4 rounded-2xl animate-in fade-in duration-150">
+            {/* School Selection for Coach or Parent */}
+            {(role === 'coach' || role === 'parent') && (
+              <div className={`space-y-2 bg-slate-950/90 border p-4 rounded-2xl animate-in fade-in duration-150 ${
+                role === 'parent' ? 'border-purple-500/30' : 'border-amber-500/30'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                    <Target className="w-4 h-4 text-amber-400" /> Pilih Sekolah yang Dilatih:
+                  <label className={`text-xs font-bold flex items-center gap-1.5 ${
+                    role === 'parent' ? 'text-purple-300' : 'text-amber-300'
+                  }`}>
+                    {role === 'parent' ? (
+                      <>
+                        <User className="w-4 h-4 text-purple-400" /> Pilih Sekolah Tempat Anak Bersekolah:
+                      </>
+                    ) : (
+                      <>
+                        <Target className="w-4 h-4 text-amber-400" /> Pilih Sekolah yang Dilatih:
+                      </>
+                    )}
                   </label>
                   {schools.length > 0 && (
                     <div className="flex items-center gap-2">
@@ -401,7 +443,9 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                   )}
                 </div>
                 <p className="text-[11px] text-slate-400">
-                  Pelatih ini hanya bisa melihat data dan mengisi presensi/scoring untuk sekolah yang diikutsertakan di bawah ini.
+                  {role === 'parent'
+                    ? 'Pengguna Orang Tua ini hanya akan bisa membuka dan melihat data siswa/anak di sekolah yang dipilih di bawah ini.'
+                    : 'Pelatih ini hanya bisa melihat data dan mengisi presensi/scoring untuk sekolah yang diikutsertakan di bawah ini.'}
                 </p>
 
                 {schools.length === 0 ? (
@@ -417,7 +461,9 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                           key={sch.id}
                           className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${
                             isChecked
-                              ? 'bg-amber-500/15 border-amber-500/50 text-white font-bold shadow-sm'
+                              ? role === 'parent'
+                                ? 'bg-purple-500/15 border-purple-500/50 text-white font-bold shadow-sm'
+                                : 'bg-amber-500/15 border-amber-500/50 text-white font-bold shadow-sm'
                               : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
@@ -434,7 +480,9 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
                                 setAssignedSchoolIds((prev) => prev.filter((id) => id !== sch.id));
                               }
                             }}
-                            className="w-4 h-4 accent-amber-500 rounded cursor-pointer shrink-0"
+                            className={`w-4 h-4 rounded cursor-pointer shrink-0 ${
+                              role === 'parent' ? 'accent-purple-500' : 'accent-amber-500'
+                            }`}
                           />
                         </label>
                       );

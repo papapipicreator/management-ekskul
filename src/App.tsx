@@ -45,6 +45,7 @@ import { ParentPortal } from './components/parent/ParentPortal';
 import { CoachScanModal } from './components/coach/CoachScanModal';
 import { NotificationCenterModal } from './components/admin/NotificationCenterModal';
 import { AdminLoginModal } from './components/admin/AdminLoginModal';
+import { ParentLoginModal } from './components/parent/ParentLoginModal';
 import { ChangePasswordModal } from './components/admin/ChangePasswordModal';
 import { UserManagementModal } from './components/admin/UserManagementModal';
 import { ShieldCheck, Lock, KeyRound, ArrowRight, LogOut, UserPlus } from 'lucide-react';
@@ -65,6 +66,15 @@ const INITIAL_USER_ACCOUNTS: UserAccount[] = [
     password: 'pelatih123',
     role: 'coach',
     createdAt: '2026-01-02T00:00:00.000Z',
+  },
+  {
+    id: 'u-3',
+    name: 'Orang Tua (Wali Siswa)',
+    username: 'orangtua',
+    password: 'orangtua123',
+    role: 'parent',
+    assignedSchoolIds: ['sch-1'],
+    createdAt: '2026-01-03T00:00:00.000Z',
   },
 ];
 
@@ -102,6 +112,7 @@ export default function App() {
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
+  const [isParentLoginModalOpen, setIsParentLoginModalOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [isUserManagementModalOpen, setIsUserManagementModalOpen] = useState(false);
   const [isColorSchemeModalOpen, setIsColorSchemeModalOpen] = useState(false);
@@ -159,10 +170,28 @@ export default function App() {
 
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUserSession(user);
-    setIsAdminLoggedIn(true);
-    setIsAdminLoginModalOpen(false);
-    if (user.role === 'coach') {
-      setAdminTab('scoring');
+    
+    if (user.role === 'parent') {
+      setCurrentRole('parent');
+      setIsParentLoginModalOpen(false);
+      setIsAdminLoginModalOpen(false);
+      if (user.assignedSchoolIds && user.assignedSchoolIds.length > 0) {
+        setSelectedSchoolId(user.assignedSchoolIds[0]);
+      }
+    } else {
+      setIsAdminLoggedIn(true);
+      setIsAdminLoginModalOpen(false);
+      setIsParentLoginModalOpen(false);
+      
+      if (user.role === 'coach') {
+        setCurrentRole('admin');
+        setAdminTab('scoring');
+        if (user.assignedSchoolIds && user.assignedSchoolIds.length > 0) {
+          setSelectedSchoolId(user.assignedSchoolIds[0]);
+        }
+      } else {
+        setCurrentRole('admin');
+      }
     }
   };
 
@@ -551,34 +580,49 @@ export default function App() {
     StorageService.saveNotifications(updated);
   };
 
-  // Coach assigned schools filtering logic
-  const coachAssignedSchoolIds = isCoachRole && currentUserSession?.assignedSchoolIds && currentUserSession.assignedSchoolIds.length > 0
-    ? currentUserSession.assignedSchoolIds
-    : null;
+  // User assigned schools filtering logic (for coaches and parents)
+  const isParentRole = currentUserSession?.role === 'parent';
 
-  const effectiveSchools = coachAssignedSchoolIds
-    ? schools.filter((s) => coachAssignedSchoolIds.includes(s.id))
+  const userAssignedSchoolIds =
+    (currentUserSession?.role === 'coach' || currentUserSession?.role === 'parent') &&
+    currentUserSession?.assignedSchoolIds &&
+    currentUserSession.assignedSchoolIds.length > 0
+      ? currentUserSession.assignedSchoolIds
+      : null;
+
+  const effectiveSchools = userAssignedSchoolIds
+    ? schools.filter((s) => userAssignedSchoolIds.includes(s.id))
     : schools;
 
-  const effectiveStudents = coachAssignedSchoolIds
-    ? students.filter((s) => coachAssignedSchoolIds.includes(s.schoolId))
+  const effectiveStudents = userAssignedSchoolIds
+    ? students.filter((s) => userAssignedSchoolIds.includes(s.schoolId))
     : students;
 
-  const effectiveSchedules = coachAssignedSchoolIds
-    ? schedules.filter((sch) => coachAssignedSchoolIds.includes(sch.schoolId))
+  const effectiveSchedules = userAssignedSchoolIds
+    ? schedules.filter((sch) => userAssignedSchoolIds.includes(sch.schoolId))
     : schedules;
 
-  const effectiveAttendance = coachAssignedSchoolIds
-    ? attendance.filter((a) => coachAssignedSchoolIds.includes(a.schoolId))
+  const effectiveAttendance = userAssignedSchoolIds
+    ? attendance.filter((a) => userAssignedSchoolIds.includes(a.schoolId))
     : attendance;
 
-  const effectiveScores = coachAssignedSchoolIds
-    ? scores.filter((sc) => coachAssignedSchoolIds.includes(sc.schoolId))
+  const effectiveScores = userAssignedSchoolIds
+    ? scores.filter((sc) => userAssignedSchoolIds.includes(sc.schoolId))
     : scores;
 
-  const effectivePayments = coachAssignedSchoolIds
-    ? payments.filter((p) => coachAssignedSchoolIds.includes(p.schoolId))
+  const effectivePayments = userAssignedSchoolIds
+    ? payments.filter((p) => userAssignedSchoolIds.includes(p.schoolId))
     : payments;
+
+  useEffect(() => {
+    if (userAssignedSchoolIds && userAssignedSchoolIds.length > 0) {
+      if (selectedSchoolId !== 'ALL' && !userAssignedSchoolIds.includes(selectedSchoolId)) {
+        setSelectedSchoolId(userAssignedSchoolIds[0]);
+      } else if (currentRole === 'parent' && selectedSchoolId === 'ALL' && userAssignedSchoolIds.length === 1) {
+        setSelectedSchoolId(userAssignedSchoolIds[0]);
+      }
+    }
+  }, [userAssignedSchoolIds, selectedSchoolId, currentRole]);
 
   // Filtered lists by selected school
   const filteredStudents = selectedSchoolId === 'ALL' ? effectiveStudents : effectiveStudents.filter((s) => s.schoolId === selectedSchoolId);
@@ -618,6 +662,8 @@ export default function App() {
           setCurrentRole(role);
           if (role === 'admin' && !isAdminLoggedIn) {
             setIsAdminLoginModalOpen(true);
+          } else if (role === 'parent' && currentUserSession?.role !== 'parent') {
+            setIsParentLoginModalOpen(true);
           }
         }}
         schools={effectiveSchools}
@@ -657,15 +703,20 @@ export default function App() {
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={() => setIsAdminLoginModalOpen(true)}
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/50 inline-flex items-center gap-2 transition-all"
+                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/50 inline-flex items-center gap-2 transition-all cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4" /> Login Admin Sekarang <ArrowRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setCurrentRole('parent')}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-950/50 inline-flex items-center gap-2 transition-all"
+                onClick={() => {
+                  setCurrentRole('parent');
+                  if (currentUserSession?.role !== 'parent') {
+                    setIsParentLoginModalOpen(true);
+                  }
+                }}
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-950/50 inline-flex items-center gap-2 transition-all cursor-pointer"
               >
-                <Users className="w-4 h-4" /> Akses Sebagai Orang Tua
+                <Users className="w-4 h-4" /> Akses Portal Orang Tua
               </button>
             </div>
           </div>
@@ -709,7 +760,7 @@ export default function App() {
                     <p className="text-[11px] text-amber-300 font-semibold mt-1">
                       Sekolah Dilatih:{' '}
                       <span className="text-slate-200">
-                        {coachAssignedSchoolIds
+                        {userAssignedSchoolIds
                           ? effectiveSchools.map((s) => s.name).join(', ') || 'Belum Ditugaskan'
                           : 'Semua Sekolah Mitra'}
                       </span>
@@ -956,17 +1007,45 @@ export default function App() {
           />
         )}
 
-        {currentRole === 'parent' && (
+        {currentRole === 'parent' && currentUserSession?.role !== 'parent' && (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden my-6">
+            <div className="absolute -top-20 -right-20 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="w-16 h-16 mx-auto rounded-3xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center shadow-lg">
+              <Lock className="w-8 h-8" />
+            </div>
+
+            <div className="max-w-md mx-auto space-y-2">
+              <h2 className="text-xl font-black text-white">Portal Orang Tua Terkunci</h2>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Silakan login menggunakan akun Orang Tua/Wali yang telah dibuatkan oleh Admin untuk mengakses laporan perkembangan skoring, rekap presensi, dan status pembayaran SPP ananda.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => setIsParentLoginModalOpen(true)}
+                className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-950/50 inline-flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Users className="w-4 h-4" /> Login Portal Orang Tua <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {currentRole === 'parent' && currentUserSession?.role === 'parent' && (
           <ParentPortal
-            students={students}
-            schools={schools}
-            attendance={attendance}
-            scores={scores}
-            payments={payments}
+            students={effectiveStudents}
+            schools={effectiveSchools}
+            attendance={effectiveAttendance}
+            scores={effectiveScores}
+            payments={effectivePayments}
             notifications={notifications}
             onPaySpp={handlePaySppSuccess}
             selectedSchoolId={selectedSchoolId}
             bankConfig={bankConfig}
+            currentUserSession={currentUserSession}
+            onLogout={handleLogout}
+            onLoginClick={() => setIsParentLoginModalOpen(true)}
           />
         )}
       </main>
@@ -990,7 +1069,21 @@ export default function App() {
         adminCredentials={adminCredentials}
         users={users}
         onLoginSuccess={handleLoginSuccess}
-        onSelectParentRole={() => setCurrentRole('parent')}
+        onSelectParentRole={() => {
+          setIsAdminLoginModalOpen(false);
+          setIsParentLoginModalOpen(true);
+        }}
+      />
+
+      <ParentLoginModal
+        isOpen={isParentLoginModalOpen}
+        onClose={() => setIsParentLoginModalOpen(false)}
+        users={users}
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchToAdminLogin={() => {
+          setIsParentLoginModalOpen(false);
+          setIsAdminLoginModalOpen(true);
+        }}
       />
 
       <UserManagementModal

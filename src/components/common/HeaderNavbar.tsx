@@ -73,9 +73,11 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               onChange={(e) => onSchoolChange(e.target.value)}
               className="bg-transparent text-xs text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="ALL" className="bg-slate-900">
-                🌐 Semua Sekolah Mitra
-              </option>
+              {schools.length > 1 && (
+                <option value="ALL" className="bg-slate-900">
+                  🌐 Semua Sekolah Terdaftar
+                </option>
+              )}
               {schools.map((s) => (
                 <option key={s.id} value={s.id} className="bg-slate-900">
                   {s.name}

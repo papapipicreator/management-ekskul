@@ -19,7 +19,9 @@ import {
   School as SchoolIcon,
   ChevronRight,
   XCircle,
-  FileText
+  FileText,
+  LogOut,
+  Users
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -37,7 +39,8 @@ import {
   ArcheryScoreRecord,
   SppPayment,
   SystemNotification,
-  BankAccountConfig
+  BankAccountConfig,
+  UserAccount
 } from '../../types';
 import { exportScoresToPdf, downloadInvoicePdf } from '../../utils/exportUtils';
 import { SppPaymentModal } from '../student/SppPaymentModal';
@@ -52,6 +55,9 @@ interface ParentPortalProps {
   onPaySpp: (paymentId: string, method: string) => void;
   selectedSchoolId?: string;
   bankConfig?: BankAccountConfig;
+  currentUserSession?: UserAccount | null;
+  onLogout?: () => void;
+  onLoginClick?: () => void;
 }
 
 export const ParentPortal: React.FC<ParentPortalProps> = ({
@@ -64,6 +70,9 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
   onPaySpp,
   selectedSchoolId = 'ALL',
   bankConfig,
+  currentUserSession,
+  onLogout,
+  onLoginClick,
 }) => {
   const filteredStudents =
     selectedSchoolId && selectedSchoolId !== 'ALL'
@@ -140,6 +149,52 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Account Session Info Header Bar */}
+      <div className="bg-slate-900 border border-purple-500/30 p-3.5 px-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 flex items-center justify-center font-bold shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-white">
+                Akun Orang Tua: {currentUserSession?.name || 'Orang Tua / Wali Siswa'}
+              </span>
+              {currentUserSession?.username && (
+                <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono px-2 py-0.5 rounded-full">
+                  @{currentUserSession.username}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {currentUserSession?.assignedSchoolIds && currentUserSession.assignedSchoolIds.length > 0
+                ? `Terhubung ke ${schools.filter((s) => currentUserSession.assignedSchoolIds?.includes(s.id)).map((s) => s.name).join(', ') || 'Sekolah Terdaftar'}`
+                : 'Akses Seluruh Sekolah Mitra'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {onLoginClick && (
+            <button
+              onClick={onLoginClick}
+              className="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Users className="w-3.5 h-3.5" /> Ganti Akun Orang Tua
+            </button>
+          )}
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Keluar dari sesi orang tua"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Keluar
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Parent Welcome Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
         <div>

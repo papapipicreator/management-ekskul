@@ -160,7 +160,7 @@ export interface UserAccount {
   name: string;
   username: string;
   password: string;
-  role: 'admin' | 'coach';
+  role: 'admin' | 'coach' | 'parent';
   assignedSchoolIds?: string[];
   createdAt: string;
 }
