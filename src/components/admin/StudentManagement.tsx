@@ -13,6 +13,13 @@ interface StudentManagementProps {
   onUpdateStudent: (student: Student) => void;
   onDeleteStudent: (studentId: string) => void;
   selectedSchoolId: string;
+  onUpdatePaymentStatus?: (
+    paymentId: string,
+    status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi',
+    paidDate?: string,
+    paymentMethod?: string
+  ) => void;
+  onAddPaymentBill?: (newPayment: SppPayment) => void;
 }
 
 export const StudentManagement: React.FC<StudentManagementProps> = ({
@@ -25,6 +32,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
   onUpdateStudent,
   onDeleteStudent,
   selectedSchoolId,
+  onUpdatePaymentStatus,
+  onAddPaymentBill,
 }) => {
   const [filterBow, setFilterBow] = useState<string>('ALL');
   const [search, setSearch] = useState<string>('');
@@ -509,6 +518,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({
             setSelectedStudentForDetail(null);
             handleOpenEditModal(std);
           }}
+          onUpdatePaymentStatus={onUpdatePaymentStatus}
+          onAddPaymentBill={onAddPaymentBill}
         />
       )}
     </div>

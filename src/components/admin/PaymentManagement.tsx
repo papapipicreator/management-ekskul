@@ -17,10 +17,12 @@ import {
   Building,
   QrCode,
   Settings2,
+  PlusCircle,
 } from 'lucide-react';
 import { SppPayment, Student, School, SystemNotification, BankAccountConfig } from '../../types';
 import { exportPaymentsToPdf, exportPaymentsToExcel, downloadInvoicePdf, downloadSchoolInvoicePdf } from '../../utils/exportUtils';
 import { BankConfigModal } from './BankConfigModal';
+import { BatchSppBillModal } from './BatchSppBillModal';
 
 interface PaymentManagementProps {
   payments: SppPayment[];
@@ -31,6 +33,7 @@ interface PaymentManagementProps {
   selectedSchoolId: string;
   bankConfig: BankAccountConfig;
   onUpdateBankConfig: (config: BankAccountConfig) => void;
+  onAddBatchPayments?: (newPayments: SppPayment[]) => void;
 }
 
 export const PaymentManagement: React.FC<PaymentManagementProps> = ({
@@ -42,12 +45,14 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
   selectedSchoolId,
   bankConfig,
   onUpdateBankConfig,
+  onAddBatchPayments,
 }) => {
   const [activeTab, setActiveTab] = useState<'spp_siswa' | 'school_honor'>('spp_siswa');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [search, setSearch] = useState<string>('');
   const [sentNoticeId, setSentNoticeId] = useState<string | null>(null);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // State to track school invoice payment status & sessions count
   const [schoolInvoicePaid, setSchoolInvoicePaid] = useState<Record<string, boolean>>({
@@ -126,6 +131,26 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
     setSchoolInvoicePaid((prev) => ({ ...prev, [schId]: !prev[schId] }));
   };
 
+  const handleBatchGenerated = (newPayments: SppPayment[], notifyParents: boolean) => {
+    if (onAddBatchPayments) {
+      onAddBatchPayments(newPayments);
+    }
+    if (notifyParents && newPayments.length > 0) {
+      const sample = newPayments[0];
+      const notif: SystemNotification = {
+        id: `notif-batch-${Date.now()}`,
+        title: `Tagihan SPP Baru (${sample.month}) Diterbitkan`,
+        message: `Sebanyak ${newPayments.length} tagihan SPP ${sample.month} telah diterbitkan untuk siswa sekolah mitra. Silakan cek dan lakukan pembayaran via Portal Orang Tua.`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        type: 'payment',
+        targetSchoolId: sample.schoolId,
+        read: false,
+        channelSent: 'WhatsApp',
+      };
+      onSendNotification(notif);
+    }
+  };
+
   const filteredSchools = selectedSchoolId === 'ALL' ? schools : schools.filter((s) => s.id === selectedSchoolId);
 
   return (
@@ -145,20 +170,26 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setIsBankModalOpen(true)}
-              className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-sky-950/50"
+              onClick={() => setIsBatchModalOpen(true)}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-purple-950/50 cursor-pointer"
             >
-              <Settings2 className="w-3.5 h-3.5 text-sky-200" /> Ubah Rekening SPP & QRIS
+              <PlusCircle className="w-3.5 h-3.5 text-purple-200" /> + Terbitkan SPP Massal
+            </button>
+            <button
+              onClick={() => setIsBankModalOpen(true)}
+              className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-sky-950/50 cursor-pointer"
+            >
+              <Settings2 className="w-3.5 h-3.5 text-sky-200" /> Ubah Rekening SPP
             </button>
             <button
               onClick={() => exportPaymentsToPdf(filteredPayments, 'Agustus 2026')}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-rose-400" /> Export PDF
             </button>
             <button
               onClick={() => exportPaymentsToExcel(filteredPayments)}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> Export Excel
             </button>
@@ -300,7 +331,14 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setIsBatchModalOpen(true)}
+                className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-purple-950/40 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-200" /> Terbitkan Tagihan SPP Sekolah
+              </button>
+
               <Filter className="w-4 h-4 text-slate-400" />
               <select
                 value={statusFilter}
@@ -603,6 +641,16 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
         onClose={() => setIsBankModalOpen(false)}
         bankConfig={bankConfig}
         onSaveConfig={onUpdateBankConfig}
+      />
+
+      {/* Batch SPP Bill Modal */}
+      <BatchSppBillModal
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        schools={schools}
+        students={students}
+        existingPayments={payments}
+        onGenerateBatchPayments={handleBatchGenerated}
       />
     </div>
   );

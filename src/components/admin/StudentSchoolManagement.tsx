@@ -24,6 +24,13 @@ interface StudentSchoolManagementProps {
   onEditCoach?: (coach: Coach) => void;
   onDeleteCoach?: (coachId: string) => void;
   selectedSchoolId: string;
+  onUpdatePaymentStatus?: (
+    paymentId: string,
+    status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi',
+    paidDate?: string,
+    paymentMethod?: string
+  ) => void;
+  onAddPaymentBill?: (newPayment: SppPayment) => void;
 }
 
 export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = ({
@@ -46,6 +53,8 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
   onEditCoach,
   onDeleteCoach,
   selectedSchoolId,
+  onUpdatePaymentStatus,
+  onAddPaymentBill,
 }) => {
   const [activeTab, setActiveTab] = useState<'students' | 'schools' | 'coaches'>('students');
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -1403,6 +1412,8 @@ export const StudentSchoolManagement: React.FC<StudentSchoolManagementProps> = (
           payments={payments}
           onClose={() => setSelectedStudentForDetail(null)}
           onEditStudent={handleOpenEditStudent}
+          onUpdatePaymentStatus={onUpdatePaymentStatus}
+          onAddPaymentBill={onAddPaymentBill}
         />
       )}
     </div>

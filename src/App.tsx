@@ -411,17 +411,44 @@ export default function App() {
     StorageService.saveStudentAttendance(updated);
   };
 
-  const handleUpdatePaymentStatus = (id: string, status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi') => {
+  const handleUpdatePaymentStatus = (
+    id: string,
+    status: 'Lunas' | 'Belum Bayar' | 'Menunggu Konfirmasi',
+    paidDate?: string,
+    paymentMethod?: string
+  ) => {
     const updated = payments.map((p) =>
       p.id === id
         ? {
             ...p,
             status,
-            paidDate: status === 'Lunas' ? new Date().toISOString().substring(0, 10) : p.paidDate,
-            paymentMethod: status === 'Lunas' ? p.paymentMethod || 'Manual Verifikasi Admin' : p.paymentMethod,
+            paidDate:
+              status === 'Lunas'
+                ? paidDate || p.paidDate || new Date().toISOString().substring(0, 10)
+                : status === 'Belum Bayar'
+                ? undefined
+                : p.paidDate,
+            paymentMethod:
+              status === 'Lunas'
+                ? paymentMethod || p.paymentMethod || 'Manual Verifikasi Admin'
+                : status === 'Belum Bayar'
+                ? undefined
+                : p.paymentMethod,
           }
         : p
     );
+    setPayments(updated);
+    StorageService.savePayments(updated);
+  };
+
+  const handleAddPaymentBill = (newPayment: SppPayment) => {
+    const updated = [newPayment, ...payments];
+    setPayments(updated);
+    StorageService.savePayments(updated);
+  };
+
+  const handleAddBatchPayments = (newPayments: SppPayment[]) => {
+    const updated = [...newPayments, ...payments];
     setPayments(updated);
     StorageService.savePayments(updated);
   };
@@ -952,6 +979,7 @@ export default function App() {
                 selectedSchoolId={selectedSchoolId}
                 bankConfig={bankConfig}
                 onUpdateBankConfig={handleUpdateBankConfig}
+                onAddBatchPayments={handleAddBatchPayments}
               />
             )}
 
@@ -976,6 +1004,8 @@ export default function App() {
                 onEditCoach={handleEditCoach}
                 onDeleteCoach={handleDeleteCoach}
                 selectedSchoolId={selectedSchoolId}
+                onUpdatePaymentStatus={handleUpdatePaymentStatus}
+                onAddPaymentBill={handleAddPaymentBill}
               />
             )}
 
