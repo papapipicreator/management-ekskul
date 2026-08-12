@@ -162,5 +162,15 @@ export const FirebaseService = {
     } catch (err) {
       console.error('Error saving bank config:', err);
     }
+  },
+
+  // Save admin credentials
+  saveAdminCredentials: async (creds: { username: string; password: string }) => {
+    try {
+      const docRef = doc(db, 'settings', 'adminCredentials');
+      await setDoc(docRef, creds, { merge: true });
+    } catch (err) {
+      console.error('Error saving admin credentials:', err);
+    }
   }
 };

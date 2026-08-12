@@ -110,6 +110,16 @@ export const StorageService = {
     FirebaseService.saveBankConfig(config);
   },
 
+  saveUsers: (users: any[]) => {
+    setItem('panahan_user_accounts', users);
+    FirebaseService.syncCollection('users', users);
+  },
+
+  saveAdminCredentials: (creds: { username: string; password: string }) => {
+    setItem('panahan_admin_creds', creds);
+    FirebaseService.saveAdminCredentials(creds);
+  },
+
   resetAllData: () => {
     localStorage.removeItem(KEYS.SCHOOLS);
     localStorage.removeItem(KEYS.COACHES);

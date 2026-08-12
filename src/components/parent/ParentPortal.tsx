@@ -147,6 +147,13 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
     );
   };
 
+  // Filter notifications: General announcements OR announcements specifically for active student's school
+  const relevantNotifications = notifications.filter((n) => {
+    if (!n.targetSchoolId || n.targetSchoolId === 'ALL') return true;
+    if (activeStudent && n.targetSchoolId === activeStudent.schoolId) return true;
+    return false;
+  });
+
   return (
     <div className="space-y-6">
       {/* Account Session Info Header Bar */}
@@ -427,13 +434,18 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                   <Bell className="w-4 h-4 text-purple-400" /> Informasi & Pengumuman Ekskul
                 </h3>
 
-                {notifications.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">Tidak ada notifikasi baru.</p>
+                {relevantNotifications.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-4 text-center">Tidak ada pengumuman baru untuk sekolah ini.</p>
                 ) : (
                   <div className="space-y-3">
-                    {notifications.slice(0, 3).map((n) => (
+                    {relevantNotifications.map((n) => (
                       <div key={n.id} className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1 text-xs">
-                        <span className="font-bold text-emerald-400 block">{n.title}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-emerald-400 block">{n.title}</span>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-purple-500/20 text-purple-300 border-purple-500/30 shrink-0">
+                            {!n.targetSchoolId || n.targetSchoolId === 'ALL' ? 'Pengumuman Umum' : 'Khusus Sekolah'}
+                          </span>
+                        </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">{n.message}</p>
                         <span className="text-[9px] text-slate-500 font-mono block pt-1">{n.timestamp}</span>
                       </div>

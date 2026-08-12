@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Target, Award, CreditCard, QrCode, Calendar, CheckCircle2, TrendingUp, Download, Sparkles, AlertCircle } from 'lucide-react';
-import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule, BankAccountConfig } from '../../types';
+import { Target, Award, CreditCard, QrCode, Calendar, CheckCircle2, TrendingUp, Download, Sparkles, AlertCircle, Bell } from 'lucide-react';
+import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule, BankAccountConfig, SystemNotification } from '../../types';
 import { SppPaymentModal } from './SppPaymentModal';
 import { getStudentQrCodeImgUrl } from '../../utils/qrUtils';
 
@@ -10,6 +10,7 @@ interface StudentPortalProps {
   scores: ArcheryScoreRecord[];
   payments: SppPayment[];
   schedules: Schedule[];
+  notifications?: SystemNotification[];
   onPaySpp: (paymentId: string, method: string) => void;
   bankConfig?: BankAccountConfig;
 }
@@ -20,6 +21,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   scores,
   payments,
   schedules,
+  notifications = [],
   onPaySpp,
   bankConfig,
 }) => {
@@ -37,6 +39,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   const totalArrowCount = myScores.reduce((acc, curr) => acc + curr.ends.flatMap((e) => e.arrows).length, 0);
   const highestScore = myScores.length > 0 ? Math.max(...myScores.map((s) => s.totalScore)) : 0;
   const totalPresenceCount = myAttendance.filter((a) => a.status === 'Hadir').length;
+
+  // Filter notifications: Only public/general announcements OR announcements for student's school
+  const relevantNotifications = notifications.filter((n) => {
+    if (!n.targetSchoolId || n.targetSchoolId === 'ALL') return true;
+    if (n.targetSchoolId === student.schoolId) return true;
+    return false;
+  });
 
   const handleOpenPayment = (p: SppPayment) => {
     setSelectedPayment(p);
@@ -200,6 +209,34 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                 );
               })}
             </div>
+          </div>
+
+          {/* Announcements Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Bell className="w-4 h-4 text-purple-400" /> Informasi & Pengumuman Ekskul
+            </h3>
+
+            {relevantNotifications.length === 0 ? (
+              <p className="text-xs text-slate-500 py-4 text-center">
+                Tidak ada pengumuman baru untuk sekolah kamu.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {relevantNotifications.map((n) => (
+                  <div key={n.id} className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-emerald-400 block">{n.title}</span>
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded border bg-purple-500/20 text-purple-300 border-purple-500/30 shrink-0">
+                        {!n.targetSchoolId || n.targetSchoolId === 'ALL' ? 'Pengumuman Umum' : 'Khusus Sekolah'}
+                      </span>
+                    </div>
+                    <p className="text-slate-300 text-[11px] leading-relaxed">{n.message}</p>
+                    <span className="text-[9px] text-slate-500 font-mono block pt-1">{n.timestamp}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

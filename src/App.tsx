@@ -137,7 +137,7 @@ export default function App() {
   const handleUpdateAdminCredentials = (newUsername: string, newPassword: string) => {
     const updated = { username: newUsername, password: newPassword };
     setAdminCredentials(updated);
-    localStorage.setItem('panahan_admin_creds', JSON.stringify(updated));
+    StorageService.saveAdminCredentials(updated);
 
     // Also update in users list if admin account exists
     setUsers((prev) => {
@@ -146,7 +146,7 @@ export default function App() {
           ? { ...u, username: newUsername, password: newPassword }
           : u
       );
-      localStorage.setItem('panahan_user_accounts', JSON.stringify(copy));
+      StorageService.saveUsers(copy);
       return copy;
     });
   };
@@ -159,13 +159,13 @@ export default function App() {
     };
     const updated = [...users, account];
     setUsers(updated);
-    localStorage.setItem('panahan_user_accounts', JSON.stringify(updated));
+    StorageService.saveUsers(updated);
   };
 
   const handleDeleteUserAccount = (id: string) => {
     const updated = users.filter((u) => u.id !== id);
     setUsers(updated);
-    localStorage.setItem('panahan_user_accounts', JSON.stringify(updated));
+    StorageService.saveUsers(updated);
   };
 
   const handleLoginSuccess = (user: UserAccount) => {
@@ -221,7 +221,9 @@ export default function App() {
     const unsubScores = FirebaseService.subscribeCollection('scores', INITIAL_SCORES, setScores);
     const unsubPayments = FirebaseService.subscribeCollection('payments', INITIAL_PAYMENTS, setPayments);
     const unsubNotifications = FirebaseService.subscribeCollection('notifications', INITIAL_NOTIFICATIONS, setNotifications);
+    const unsubUsers = FirebaseService.subscribeCollection('users', INITIAL_USER_ACCOUNTS, setUsers);
     const unsubBankConfig = FirebaseService.subscribeDoc('settings', 'bankConfig', INITIAL_BANK_CONFIG, setBankConfig);
+    const unsubAdminCreds = FirebaseService.subscribeDoc('settings', 'adminCredentials', { username: 'admin', password: 'admin123' }, setAdminCredentials);
 
     return () => {
       unsubSchools();
@@ -232,7 +234,9 @@ export default function App() {
       unsubScores();
       unsubPayments();
       unsubNotifications();
+      unsubUsers();
       unsubBankConfig();
+      unsubAdminCreds();
     };
   }, []);
 
@@ -642,6 +646,12 @@ export default function App() {
     : payments;
 
   useEffect(() => {
+    const isFullAdmin = currentRole === 'admin' && isAdminLoggedIn && !isCoachRole;
+    if (!isFullAdmin && selectedSchoolId === 'ALL') {
+      if (effectiveSchools.length > 0) {
+        setSelectedSchoolId(effectiveSchools[0].id);
+      }
+    }
     if (userAssignedSchoolIds && userAssignedSchoolIds.length > 0) {
       if (selectedSchoolId !== 'ALL' && !userAssignedSchoolIds.includes(selectedSchoolId)) {
         setSelectedSchoolId(userAssignedSchoolIds[0]);
@@ -649,7 +659,7 @@ export default function App() {
         setSelectedSchoolId(userAssignedSchoolIds[0]);
       }
     }
-  }, [userAssignedSchoolIds, selectedSchoolId, currentRole]);
+  }, [userAssignedSchoolIds, selectedSchoolId, currentRole, isAdminLoggedIn, isCoachRole, effectiveSchools]);
 
   // Filtered lists by selected school
   const filteredStudents = selectedSchoolId === 'ALL' ? effectiveStudents : effectiveStudents.filter((s) => s.schoolId === selectedSchoolId);
@@ -1032,6 +1042,7 @@ export default function App() {
             scores={scores}
             payments={payments}
             schedules={schedules}
+            notifications={notifications}
             onPaySpp={handlePaySppSuccess}
             bankConfig={bankConfig}
           />

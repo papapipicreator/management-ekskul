@@ -73,7 +73,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               onChange={(e) => onSchoolChange(e.target.value)}
               className="bg-transparent text-xs text-slate-200 font-semibold focus:outline-none cursor-pointer"
             >
-              {schools.length > 1 && (
+              {isFullAdmin && schools.length > 1 && (
                 <option value="ALL" className="bg-slate-900">
                   🌐 Semua Sekolah Terdaftar
                 </option>
