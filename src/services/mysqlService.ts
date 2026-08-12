@@ -30,10 +30,14 @@ export const MysqlService = {
       if (engine === 'firebase' || engine === 'local' || engine === 'mysql') {
         return engine;
       }
+      const savedUrl = localStorage.getItem(MYSQL_API_URL_KEY);
+      if (savedUrl && savedUrl.trim().length > 0 && savedUrl.startsWith('http') && !savedUrl.includes('localhost')) {
+        return 'mysql';
+      }
     } catch (e) {
       console.error(e);
     }
-    return 'mysql'; // Default to MySQL Shared Hosting
+    return 'firebase'; // Default to Firebase in local dev preview when no custom MySQL URL is set
   },
 
   setStorageEngine: (engine: 'mysql' | 'firebase' | 'local') => {
@@ -41,6 +45,30 @@ export const MysqlService = {
       localStorage.setItem(STORAGE_ENGINE_KEY, engine);
     } catch (e) {
       console.error(e);
+    }
+  },
+
+  // Helper to safely parse JSON response and handle raw PHP file outputs
+  parseJsonResponse: async (res: Response): Promise<{ ok: boolean; data?: any; error?: string }> => {
+    if (!res.ok) {
+      return { ok: false, error: `HTTP ${res.status}: ${res.statusText}` };
+    }
+    const text = await res.text();
+    const trimmed = text.trim();
+    if (trimmed.startsWith('<?php') || trimmed.startsWith('<?')) {
+      return {
+        ok: false,
+        error: 'Server lokal Node/Vite tidak mengeksekusi PHP. Silakan unggah file api.php ke cPanel Shared Hosting Anda dan masukkan URL domain hosting Anda (misal: https://domainku.com/api.php).',
+      };
+    }
+    try {
+      const json = JSON.parse(text);
+      return { ok: true, data: json };
+    } catch (e: any) {
+      return {
+        ok: false,
+        error: `Respons dari server bukan JSON yang valid: ${trimmed.slice(0, 80)}...`,
+      };
     }
   },
 
@@ -54,15 +82,16 @@ export const MysqlService = {
         headers: { 'Accept': 'application/json' },
       });
 
-      if (!response.ok) {
+      const result = await MysqlService.parseJsonResponse(response);
+      if (!result.ok) {
         return {
           success: false,
-          message: `HTTP Error ${response.status}: ${response.statusText}`,
+          message: result.error || 'Gagal terhubung ke MySQL API.',
         };
       }
 
-      const json = await response.json();
-      if (json.status === 'success') {
+      const json = result.data;
+      if (json && json.status === 'success') {
         return {
           success: true,
           message: json.message || 'Database MySQL Shared Hosting Terhubung!',
@@ -71,7 +100,7 @@ export const MysqlService = {
       } else {
         return {
           success: false,
-          message: json.message || 'Respons API MySQL tidak valid',
+          message: json?.message || 'Respons API MySQL tidak valid.',
         };
       }
     } catch (err: any) {
@@ -88,14 +117,23 @@ export const MysqlService = {
     try {
       const fullUrl = url.includes('?') ? `${url}&action=get_all` : `${url}?action=get_all`;
       const res = await fetch(fullUrl, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) return null;
-      const json = await res.json();
-      if (json.status === 'success') {
+      const result = await MysqlService.parseJsonResponse(res);
+      if (!result.ok) {
+        if (result.error?.includes('tidak mengeksekusi PHP')) {
+          console.warn('MySQL API notice:', result.error);
+        } else {
+          console.error('MySQL API error:', result.error);
+        }
+        return null;
+      }
+
+      const json = result.data;
+      if (json && json.status === 'success') {
         return json.data;
       }
       return null;
     } catch (err) {
-      console.error('Error fetching all data from MySQL:', err);
+      console.warn('Could not fetch data from MySQL endpoint:', err);
       return null;
     }
   },
@@ -117,11 +155,11 @@ export const MysqlService = {
         }),
       });
 
-      if (!res.ok) return false;
-      const json = await res.json();
-      return json.status === 'success';
+      const result = await MysqlService.parseJsonResponse(res);
+      if (!result.ok) return false;
+      return result.data?.status === 'success';
     } catch (err) {
-      console.error(`Error syncing collection ${collectionName} to MySQL:`, err);
+      console.warn(`Could not sync collection ${collectionName} to MySQL:`, err);
       return false;
     }
   },
@@ -140,11 +178,11 @@ export const MysqlService = {
         body: JSON.stringify({ key, value }),
       });
 
-      if (!res.ok) return false;
-      const json = await res.json();
-      return json.status === 'success';
+      const result = await MysqlService.parseJsonResponse(res);
+      if (!result.ok) return false;
+      return result.data?.status === 'success';
     } catch (err) {
-      console.error(`Error saving setting ${key} to MySQL:`, err);
+      console.warn(`Could not save setting ${key} to MySQL:`, err);
       return false;
     }
   },
