@@ -9,6 +9,7 @@ import {
   INITIAL_PAYMENTS, INITIAL_NOTIFICATIONS
 } from '../data/initialData';
 import { FirebaseService } from './firebaseService';
+import { MysqlService } from './mysqlService';
 
 export const INITIAL_BANK_CONFIG: BankAccountConfig = {
   bankName: 'Bank Syariah Indonesia (BSI)',
@@ -54,70 +55,82 @@ export const StorageService = {
   saveSchools: (schools: School[]) => {
     setItem(KEYS.SCHOOLS, schools);
     FirebaseService.syncCollection('schools', schools);
+    MysqlService.syncCollection('schools', schools);
   },
 
   getCoaches: (): Coach[] => getItem(KEYS.COACHES, INITIAL_COACHES),
   saveCoaches: (coaches: Coach[]) => {
     setItem(KEYS.COACHES, coaches);
     FirebaseService.syncCollection('coaches', coaches);
+    MysqlService.syncCollection('coaches', coaches);
   },
 
   getStudents: (): Student[] => getItem(KEYS.STUDENTS, INITIAL_STUDENTS),
   saveStudents: (students: Student[]) => {
     setItem(KEYS.STUDENTS, students);
     FirebaseService.syncCollection('students', students);
+    MysqlService.syncCollection('students', students);
   },
 
   getSchedules: (): Schedule[] => getItem(KEYS.SCHEDULES, INITIAL_SCHEDULES),
   saveSchedules: (schedules: Schedule[]) => {
     setItem(KEYS.SCHEDULES, schedules);
     FirebaseService.syncCollection('schedules', schedules);
+    MysqlService.syncCollection('schedules', schedules);
   },
 
   getStudentAttendance: (): StudentAttendance[] => getItem(KEYS.STUDENT_ATTENDANCE, INITIAL_STUDENT_ATTENDANCE),
   saveStudentAttendance: (att: StudentAttendance[]) => {
     setItem(KEYS.STUDENT_ATTENDANCE, att);
     FirebaseService.syncCollection('studentAttendance', att);
+    MysqlService.syncCollection('studentAttendance', att);
   },
 
   getCoachAttendance: (): CoachAttendance[] => getItem(KEYS.COACH_ATTENDANCE, INITIAL_COACH_ATTENDANCE),
   saveCoachAttendance: (att: CoachAttendance[]) => {
     setItem(KEYS.COACH_ATTENDANCE, att);
     FirebaseService.syncCollection('coachAttendance', att);
+    MysqlService.syncCollection('coachAttendance', att);
   },
 
   getScores: (): ArcheryScoreRecord[] => getItem(KEYS.SCORES, INITIAL_SCORES),
   saveScores: (scores: ArcheryScoreRecord[]) => {
     setItem(KEYS.SCORES, scores);
     FirebaseService.syncCollection('scores', scores);
+    MysqlService.syncCollection('scores', scores);
   },
 
   getPayments: (): SppPayment[] => getItem(KEYS.PAYMENTS, INITIAL_PAYMENTS),
   savePayments: (payments: SppPayment[]) => {
     setItem(KEYS.PAYMENTS, payments);
     FirebaseService.syncCollection('payments', payments);
+    MysqlService.syncCollection('payments', payments);
   },
 
   getNotifications: (): SystemNotification[] => getItem(KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS),
   saveNotifications: (notifs: SystemNotification[]) => {
     setItem(KEYS.NOTIFICATIONS, notifs);
     FirebaseService.syncCollection('notifications', notifs);
+    MysqlService.syncCollection('notifications', notifs);
   },
 
   getBankConfig: (): BankAccountConfig => getItem(KEYS.BANK_CONFIG, INITIAL_BANK_CONFIG),
   saveBankConfig: (config: BankAccountConfig) => {
     setItem(KEYS.BANK_CONFIG, config);
     FirebaseService.saveBankConfig(config);
+    MysqlService.saveSetting('bankConfig', config);
   },
 
   saveUsers: (users: any[]) => {
     setItem('panahan_user_accounts', users);
     FirebaseService.syncCollection('users', users);
+    MysqlService.syncCollection('users', users);
   },
 
   saveAdminCredentials: (creds: { username: string; password: string }) => {
     setItem('panahan_admin_creds', creds);
     FirebaseService.saveAdminCredentials(creds);
+    MysqlService.saveSetting('adminCredentials', creds);
   },
 
   resetAllData: () => {

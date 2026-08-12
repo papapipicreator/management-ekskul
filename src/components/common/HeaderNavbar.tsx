@@ -18,6 +18,7 @@ interface HeaderNavbarProps {
   onAdminLogout?: () => void;
   onOpenColorSchemeModal?: () => void;
   onOpenExcelBackupModal?: () => void;
+  onOpenMysqlModal?: () => void;
 }
 
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
@@ -35,6 +36,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onAdminLogout,
   onOpenColorSchemeModal,
   onOpenExcelBackupModal,
+  onOpenMysqlModal,
 }) => {
   const isFullAdmin = currentRole === 'admin' && isAdminLoggedIn && !isCoachRole;
   return (
@@ -53,9 +55,13 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                 PRO 2026
               </span>
-              <span className="text-[10px] bg-sky-500/20 text-sky-300 font-bold px-2 py-0.5 rounded-full border border-sky-500/30 flex items-center gap-1 shadow-sm">
-                <Database className="w-2.5 h-2.5 text-sky-400" /> Cloud Firestore DB
-              </span>
+              <button
+                onClick={onOpenMysqlModal}
+                className="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30 flex items-center gap-1 shadow-sm transition"
+                title="Klik untuk konfigurasi MySQL Shared Hosting"
+              >
+                <Database className="w-2.5 h-2.5 text-blue-400" /> MySQL Shared Hosting
+              </button>
             </div>
             <p className="text-[11px] text-slate-400">
               Sistem Ekstrakurikuler Panahan Sekolah Terpadu
@@ -158,6 +164,16 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                 </div>
               )}
             </>
+          )}
+
+          {onOpenMysqlModal && isFullAdmin && (
+            <button
+              onClick={onOpenMysqlModal}
+              className="p-2 bg-slate-950 hover:bg-slate-800 text-blue-400 hover:text-blue-300 border border-slate-800 hover:border-blue-500/40 rounded-xl relative transition-all"
+              title="Pengaturan & Migrasi MySQL Shared Hosting"
+            >
+              <Database className="w-4 h-4" />
+            </button>
           )}
 
           {onOpenExcelBackupModal && isFullAdmin && (

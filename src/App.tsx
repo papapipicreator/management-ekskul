@@ -39,6 +39,8 @@ import { PaymentManagement } from './components/admin/PaymentManagement';
 import { StudentSchoolManagement } from './components/admin/StudentSchoolManagement';
 import { ReportExportView } from './components/admin/ReportExportView';
 import { ExcelDataBackupModal } from './components/admin/ExcelDataBackupModal';
+import { MysqlConfigModal } from './components/admin/MysqlConfigModal';
+import { MysqlService } from './services/mysqlService';
 
 import { StudentPortal } from './components/student/StudentPortal';
 import { ParentPortal } from './components/parent/ParentPortal';
@@ -249,6 +251,28 @@ export default function App() {
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
   const [isExcelBackupModalOpen, setIsExcelBackupModalOpen] = useState(false);
+  const [isMysqlModalOpen, setIsMysqlModalOpen] = useState(false);
+
+  // Fetch initial data from MySQL if active storage engine is 'mysql'
+  useEffect(() => {
+    if (MysqlService.getStorageEngine() === 'mysql') {
+      MysqlService.getAllData().then((data) => {
+        if (data) {
+          if (data.schools && data.schools.length > 0) setSchools(data.schools);
+          if (data.students && data.students.length > 0) setStudents(data.students);
+          if (data.coaches && data.coaches.length > 0) setCoaches(data.coaches);
+          if (data.schedules && data.schedules.length > 0) setSchedules(data.schedules);
+          if (data.studentAttendance && data.studentAttendance.length > 0) setAttendance(data.studentAttendance);
+          if (data.scores && data.scores.length > 0) setScores(data.scores);
+          if (data.payments && data.payments.length > 0) setPayments(data.payments);
+          if (data.notifications && data.notifications.length > 0) setNotifications(data.notifications);
+          if (data.users && data.users.length > 0) setUsers(data.users);
+          if (data.settings && data.settings.bankConfig) setBankConfig(data.settings.bankConfig);
+          if (data.settings && data.settings.adminCredentials) setAdminCredentials(data.settings.adminCredentials);
+        }
+      }).catch((err) => console.error('Error fetching data from MySQL on startup:', err));
+    }
+  }, []);
 
   // Direct Smartphone Camera QR Scan URL Handler
   const [directQrNotification, setDirectQrNotification] = useState<{
@@ -719,6 +743,7 @@ export default function App() {
         onAdminLogout={() => setIsAdminLoggedIn(false)}
         onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}
         onOpenExcelBackupModal={() => setIsExcelBackupModalOpen(true)}
+        onOpenMysqlModal={() => setIsMysqlModalOpen(true)}
       />
 
       <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
@@ -1177,6 +1202,25 @@ export default function App() {
         scores={scores}
         payments={payments}
         onRestoreData={handleRestoreExcelData}
+      />
+
+      <MysqlConfigModal
+        isOpen={isMysqlModalOpen}
+        onClose={() => setIsMysqlModalOpen(false)}
+        allData={{
+          schools,
+          coaches,
+          students,
+          schedules,
+          studentAttendance: attendance,
+          coachAttendance: [],
+          scores,
+          payments,
+          notifications,
+          users,
+          bankConfig,
+          adminCredentials,
+        }}
       />
     </div>
   );
