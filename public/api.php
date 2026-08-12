@@ -1,10 +1,16 @@
 <?php
+// =========================================================================
+// KONFIGURASI DATABASE MYSQL SHARED HOSTING (UBAH SESUAI CPANEL / HPANEL)
+// =========================================================================
+$db_host = "localhost";            // Kebanyakan Shared Hosting memakai 'localhost'
+$db_name = "u563434504_panahan";   // Ubah dengan Nama Database MySQL Anda di cPanel
+$db_user = "u563434504_ekskul";    // Ubah dengan Username Database MySQL Anda
+$db_pass = "PASSWORD_ANDA_HERE";   // Ubah dengan Password Database MySQL Anda
+// =========================================================================
+
 /**
  * REST API Backend PHP untuk Database MySQL Shared Hosting
  * Aplikasi Ekstrakurikuler Panahan
- *
- * Silakan upload file ini ke folder public_html atau root domain shared hosting Anda.
- * Sesuaikan konfigurasi database MySQL di bawah ini.
  */
 
 // Headers CORS & JSON Response
@@ -18,15 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
-
-// =========================================================================
-// KONFIGURASI DATABASE MYSQL SHARED HOSTING
-// =========================================================================
-$db_host = "localhost";        // Biasa 'localhost' di Shared Hosting (cPanel)
-$db_name = "db_panahan";       // Nama Database MySQL Anda
-$db_user = "root";             // Username Database MySQL
-$db_pass = "";                 // Password Database MySQL
-// =========================================================================
 
 try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass, [
