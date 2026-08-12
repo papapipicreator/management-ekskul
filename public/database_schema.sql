@@ -1,8 +1,5 @@
 -- Database Schema for Ekstrakurikuler Panahan
--- Import file ini melalui phpMyAdmin atau MySQL CLI di Shared Hosting Anda.
-
-CREATE DATABASE IF NOT EXISTS `db_panahan` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `db_panahan`;
+-- Petunjuk: Pilih database Anda terlebih dahulu di phpMyAdmin, lalu Import file ini.
 
 -- 1. Table Schools (Sekolah)
 CREATE TABLE IF NOT EXISTS `schools` (

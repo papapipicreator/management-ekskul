@@ -292,7 +292,7 @@ export const MysqlConfigModal: React.FC<MysqlConfigModalProps> = ({
                 Buka cPanel Shared Hosting Anda (Hostinger, Niagahoster, Rumahweb, Dll) & buat database MySQL baru di menu <strong>MySQL Databases</strong> (misal: <code className="text-amber-300 font-mono">db_panahan</code>).
               </li>
               <li>
-                Buka <strong>phpMyAdmin</strong>, pilih database tersebut, lalu klik <strong>Import</strong> dan upload file <code className="text-amber-300 font-mono">database_schema.sql</code>.
+                Buka <strong>phpMyAdmin</strong>, <strong>KLIK/PILIH NAMA DATABASE ANDA</strong> terlebih dahulu di panel sebelah kiri, lalu klik tab <strong>Import</strong> dan upload file <code className="text-amber-300 font-mono">database_schema.sql</code>. (Jangan jalankan di root server phpMyAdmin agar tidak muncul error #1044 Access Denied).
               </li>
               <li>
                 Upload file <code className="text-amber-300 font-mono">api.php</code> ke folder <code className="text-amber-300 font-mono">public_html</code> domain Anda. Edit variabel <code className="text-amber-300 font-mono">$db_name, $db_user, $db_pass</code> di bagian atas file <code className="text-amber-300 font-mono">api.php</code>.
