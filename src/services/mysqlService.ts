@@ -7,6 +7,16 @@ export const MysqlService = {
   // Get current API URL (Default to current origin/api.php if on same server, or window.location.origin + '/api.php')
   getApiUrl: (): string => {
     try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlApiParam = urlParams.get('api_url');
+        if (urlApiParam && urlApiParam.trim().length > 0) {
+          const clean = urlApiParam.trim();
+          localStorage.setItem(MYSQL_API_URL_KEY, clean);
+          localStorage.setItem(STORAGE_ENGINE_KEY, 'mysql');
+          return clean;
+        }
+      }
       const saved = localStorage.getItem(MYSQL_API_URL_KEY);
       if (saved && saved.trim().length > 0) return saved.trim();
     } catch (e) {

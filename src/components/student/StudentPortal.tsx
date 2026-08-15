@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Target, Award, CreditCard, QrCode, Calendar, CheckCircle2, TrendingUp, Download, Sparkles, AlertCircle, Bell } from 'lucide-react';
 import { Student, StudentAttendance, ArcheryScoreRecord, SppPayment, Schedule, BankAccountConfig, SystemNotification } from '../../types';
-import { SppPaymentModal } from './SppPaymentModal';
 import { getStudentQrCodeImgUrl } from '../../utils/qrUtils';
 
 interface StudentPortalProps {
@@ -11,7 +10,7 @@ interface StudentPortalProps {
   payments: SppPayment[];
   schedules: Schedule[];
   notifications?: SystemNotification[];
-  onPaySpp: (paymentId: string, method: string) => void;
+  onPaySpp?: (paymentId: string, method: string) => void;
   bankConfig?: BankAccountConfig;
 }
 
@@ -25,9 +24,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   onPaySpp,
   bankConfig,
 }) => {
-  const [selectedPayment, setSelectedPayment] = useState<SppPayment | null>(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-
   // Student specific data
   const myAttendance = attendance.filter((a) => a.studentId === student.id);
   const myScores = scores.filter((s) => s.studentId === student.id);
@@ -46,11 +42,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
     if (n.targetSchoolId === student.schoolId) return true;
     return false;
   });
-
-  const handleOpenPayment = (p: SppPayment) => {
-    setSelectedPayment(p);
-    setIsPaymentModalOpen(true);
-  };
 
   return (
     <div className="space-y-6">
@@ -194,12 +185,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
                         </p>
 
                         {p.status !== 'Lunas' ? (
-                          <button
-                            onClick={() => handleOpenPayment(p)}
-                            className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-1.5 transition-all"
-                          >
-                            <Sparkles className="w-3.5 h-3.5" /> Bayar Sekarang (QRIS/Bank)
-                          </button>
+                          <p className="text-[10px] text-amber-400 font-mono">Status: {p.status} (Dikonfirmasi oleh Admin)</p>
                         ) : (
                           <p className="text-[10px] text-emerald-400 font-mono">Lunas: {p.paidDate} ({p.paymentMethod})</p>
                         )}
@@ -240,17 +226,6 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Payment Modal */}
-      {selectedPayment && (
-        <SppPaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => setIsPaymentModalOpen(false)}
-          payment={selectedPayment}
-          onPaymentSuccess={onPaySpp}
-          bankConfig={bankConfig}
-        />
-      )}
     </div>
   );
 };

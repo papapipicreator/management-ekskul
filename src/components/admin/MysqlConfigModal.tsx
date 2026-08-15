@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Server, Download, CheckCircle2, AlertCircle, RefreshCw, Globe, Key, FileText, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Database, Server, Download, CheckCircle2, AlertCircle, RefreshCw, Globe, Key, FileText, ArrowRight, ShieldCheck, Share2, Copy, Smartphone } from 'lucide-react';
 import { MysqlService } from '../../services/mysqlService';
 import { School, Coach, Student, Schedule, StudentAttendance, CoachAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, BankAccountConfig } from '../../types';
 
@@ -33,6 +33,7 @@ export const MysqlConfigModal: React.FC<MysqlConfigModalProps> = ({
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; database?: string } | null>(null);
   const [isMigrating, setIsMigrating] = useState<boolean>(false);
   const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,6 +41,7 @@ export const MysqlConfigModal: React.FC<MysqlConfigModalProps> = ({
       setActiveEngine(MysqlService.getStorageEngine());
       setTestResult(null);
       setMigrationStatus(null);
+      setCopiedLink(false);
     }
   }, [isOpen]);
 
@@ -195,6 +197,29 @@ export const MysqlConfigModal: React.FC<MysqlConfigModalProps> = ({
                 Tes Koneksi
               </button>
             </div>
+
+            {apiUrl && apiUrl.startsWith('http') && (
+              <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span>Buka di Smartphone agar langsung terhubung ke database yang sama:</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const shareUrl = `${baseUrl}?api_url=${encodeURIComponent(apiUrl)}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 3000);
+                  }}
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-blue-300 font-semibold text-[11px] rounded-lg flex items-center gap-1.5 transition shrink-0"
+                >
+                  {copiedLink ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedLink ? 'Link Tersalin!' : 'Salin Link Otomatis HP'}
+                </button>
+              </div>
+            )}
 
             {testResult && (
               <div

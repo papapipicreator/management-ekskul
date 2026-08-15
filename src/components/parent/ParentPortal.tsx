@@ -43,7 +43,6 @@ import {
   UserAccount
 } from '../../types';
 import { exportScoresToPdf, downloadInvoicePdf } from '../../utils/exportUtils';
-import { SppPaymentModal } from '../student/SppPaymentModal';
 
 interface ParentPortalProps {
   students: Student[];
@@ -52,7 +51,7 @@ interface ParentPortalProps {
   scores: ArcheryScoreRecord[];
   payments: SppPayment[];
   notifications: SystemNotification[];
-  onPaySpp: (paymentId: string, method: string) => void;
+  onPaySpp?: (paymentId: string, method: string) => void;
   selectedSchoolId?: string;
   bankConfig?: BankAccountConfig;
   currentUserSession?: UserAccount | null;
@@ -81,8 +80,6 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
 
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'attendance' | 'payments'>('overview');
-  const [selectedPayment, setSelectedPayment] = useState<SppPayment | null>(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const activeStudent =
     filteredStudents.find((s) => s.id === selectedStudentId) || filteredStudents[0];
@@ -135,11 +132,6 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
     distance: sc.distance,
     bowType: sc.bowType,
   }));
-
-  const handleOpenPayment = (p: SppPayment) => {
-    setSelectedPayment(p);
-    setIsPaymentModalOpen(true);
-  };
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
@@ -804,15 +796,6 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
                               {isFreeSpp ? 'Bebas SPP' : p.status}
                             </span>
 
-                            {!isFreeSpp && p.status !== 'Lunas' && (
-                              <button
-                                onClick={() => handleOpenPayment(p)}
-                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-1.5 transition-all"
-                              >
-                                <Sparkles className="w-3.5 h-3.5" /> Bayar
-                              </button>
-                            )}
-
                             {!isFreeSpp && p.status === 'Lunas' && (
                               <button
                                 onClick={() => downloadInvoicePdf(p)}
@@ -831,17 +814,6 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
             </div>
           )}
         </div>
-      )}
-
-      {/* Payment Modal */}
-      {selectedPayment && (
-        <SppPaymentModal
-          isOpen={isPaymentModalOpen}
-          onClose={() => setIsPaymentModalOpen(false)}
-          payment={selectedPayment}
-          onPaymentSuccess={onPaySpp}
-          bankConfig={bankConfig}
-        />
       )}
     </div>
   );

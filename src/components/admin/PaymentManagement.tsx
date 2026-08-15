@@ -441,9 +441,9 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({
                                   {pay.status !== 'Lunas' ? (
                                     <button
                                       onClick={() => onUpdatePaymentStatus(pay.id, 'Lunas')}
-                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-semibold transition-all shadow"
+                                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold transition-all shadow flex items-center gap-1 cursor-pointer"
                                     >
-                                      Set Lunas
+                                      <CheckCircle2 className="w-3.5 h-3.5" /> Bayar (Set Lunas)
                                     </button>
                                   ) : (
                                     <button
