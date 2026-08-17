@@ -775,6 +775,9 @@ export default function App() {
             schoolCount={effectiveSchools.length}
             unpaidCount={filteredPayments.filter((p) => p.status !== 'Lunas').length}
             scoreCount={filteredScores.length}
+            schools={effectiveSchools}
+            selectedSchoolId={selectedSchoolId}
+            onSchoolChange={setSelectedSchoolId}
             onOpenExcelBackupModal={() => setIsExcelBackupModalOpen(true)}
             onOpenUserManagementModal={() => setIsUserManagementModalOpen(true)}
             onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}

@@ -1,14 +1,14 @@
 import React from 'react';
-import { Target, School as SchoolIcon, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database, FileSpreadsheet } from 'lucide-react';
+import { Target, Bell, QrCode, ShieldCheck, LogOut, Lock, Users, Palette, Database, FileSpreadsheet } from 'lucide-react';
 import { Role, School } from '../../types';
 import { LOGO_IMAGE } from '../../assets/logoDataUri';
 
 interface HeaderNavbarProps {
   currentRole: Role;
   onRoleChange: (role: Role) => void;
-  schools: School[];
-  selectedSchoolId: string;
-  onSchoolChange: (schoolId: string) => void;
+  schools?: School[];
+  selectedSchoolId?: string;
+  onSchoolChange?: (schoolId: string) => void;
   unreadNotifCount: number;
   onOpenNotifications: () => void;
   onOpenScanModal: () => void;
@@ -24,8 +24,8 @@ interface HeaderNavbarProps {
 export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   currentRole,
   onRoleChange,
-  schools,
-  selectedSchoolId,
+  schools = [],
+  selectedSchoolId = '',
   onSchoolChange,
   unreadNotifCount,
   onOpenNotifications,
@@ -40,7 +40,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 }) => {
   const isFullAdmin = currentRole === 'admin' && isAdminLoggedIn && !isCoachRole;
   return (
-    <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
+    <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 lg:px-8 py-3">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3">
@@ -69,29 +69,8 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           </div>
         </div>
 
-        {/* Center Controls: School Selector & Role Switcher */}
+        {/* Center Controls: Role Switcher */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* School Selector Dropdown */}
-          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <SchoolIcon className="w-4 h-4 text-amber-400" />
-            <select
-              value={selectedSchoolId}
-              onChange={(e) => onSchoolChange(e.target.value)}
-              className="bg-transparent text-xs text-slate-200 font-semibold focus:outline-none cursor-pointer"
-            >
-              {isFullAdmin && schools.length > 1 && (
-                <option value="ALL" className="bg-slate-900">
-                  🌐 Semua Sekolah Terdaftar
-                </option>
-              )}
-              {schools.map((s) => (
-                <option key={s.id} value={s.id} className="bg-slate-900">
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Role Switcher Pill Buttons */}
           <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button

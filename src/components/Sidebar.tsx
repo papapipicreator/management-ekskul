@@ -14,10 +14,10 @@ import {
   Menu,
   X,
   Database,
-  School,
+  School as SchoolIcon,
   Sparkles
 } from 'lucide-react';
-import { Role, UserAccount } from '../types';
+import { Role, UserAccount, School } from '../types';
 
 export type AdminTab = 'scoring' | 'attendance' | 'payments' | 'master' | 'reports';
 
@@ -33,6 +33,9 @@ interface SidebarProps {
   schoolCount: number;
   unpaidCount: number;
   scoreCount: number;
+  schools?: School[];
+  selectedSchoolId?: string;
+  onSchoolChange?: (schoolId: string) => void;
   onOpenExcelBackupModal?: () => void;
   onOpenUserManagementModal?: () => void;
   onOpenColorSchemeModal?: () => void;
@@ -54,6 +57,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   schoolCount,
   unpaidCount,
   scoreCount,
+  schools = [],
+  selectedSchoolId = '',
+  onSchoolChange,
   onOpenExcelBackupModal,
   onOpenUserManagementModal,
   onOpenColorSchemeModal,
@@ -123,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Mobile Sidebar Toggle Button Bar */}
-      <div className="md:hidden bg-slate-900/90 border-b border-slate-800 p-3 flex items-center justify-between sticky top-16 z-30 backdrop-blur-md">
+      <div className="md:hidden bg-slate-900/90 border-b border-slate-800 p-3 flex items-center justify-between sticky top-[65px] z-30 backdrop-blur-md">
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition"
@@ -147,13 +153,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 top-[65px] bg-slate-950/80 backdrop-blur-sm z-35 md:hidden"
         />
       )}
 
       {/* Sidebar Navigation Panel */}
       <aside
-        className={`fixed md:sticky top-16 z-40 h-[calc(100vh-4rem)] w-72 bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 ${
+        className={`fixed md:sticky top-[65px] md:top-[72px] z-35 h-[calc(100vh-4.5rem)] w-72 bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 ${
           isMobileOpen ? 'left-0' : '-left-72 md:left-0'
         }`}
       >
@@ -193,6 +199,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Mitra Sekolah Selector Card */}
+          {schools && schools.length > 0 && onSchoolChange && (
+            <div className="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800 shadow-inner space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <SchoolIcon className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Pilihan Mitra Sekolah</span>
+                </label>
+                <span className="text-[9px] bg-amber-500/10 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/20 font-bold">
+                  {schools.length} Sekolah
+                </span>
+              </div>
+              <div className="relative">
+                <select
+                  value={selectedSchoolId}
+                  onChange={(e) => onSchoolChange(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer appearance-none pr-8"
+                >
+                  {!isCoachRole && schools.length > 1 && (
+                    <option value="ALL" className="bg-slate-900 text-white">
+                      🌐 Semua Sekolah Terdaftar
+                    </option>
+                  )}
+                  {schools.map((s) => (
+                    <option key={s.id} value={s.id} className="bg-slate-900 text-white">
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 text-[10px]">
+                  ▼
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Main Navigation Menu */}
           <div className="space-y-1.5">
