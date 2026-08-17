@@ -16,10 +16,10 @@ import {
   QrCode,
   Palette,
 } from 'lucide-react';
-import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig, ColorSchemeId } from './types';
+import { Role, Student, School, Coach, Schedule, StudentAttendance, ArcheryScoreRecord, SppPayment, SystemNotification, UserAccount, BankAccountConfig, ColorSchemeId, CustomThemeColors } from './types';
 import { StorageService, INITIAL_BANK_CONFIG } from './services/storageService';
 import { FirebaseService } from './services/firebaseService';
-import { COLOR_SCHEMES } from './data/colorSchemes';
+import { COLOR_SCHEMES, DEFAULT_CUSTOM_COLORS, applyThemeStyle } from './data/colorSchemes';
 import { ColorSchemeModal } from './components/admin/ColorSchemeModal';
 import {
   INITIAL_SCHOOLS,
@@ -33,6 +33,7 @@ import {
 } from './data/mockData';
 
 import { HeaderNavbar } from './components/common/HeaderNavbar';
+import { Sidebar } from './components/Sidebar';
 import { AttendanceManagement } from './components/admin/AttendanceManagement';
 import { ArcheryScoring } from './components/admin/ArcheryScoring';
 import { PaymentManagement } from './components/admin/PaymentManagement';
@@ -121,16 +122,29 @@ export default function App() {
 
   const [currentColorScheme, setCurrentColorScheme] = useState<ColorSchemeId>(() => {
     const saved = localStorage.getItem('panahan_color_scheme');
-    if (saved && ['emerald', 'blue', 'purple', 'rose', 'cyan', 'amber', 'light'].includes(saved)) {
+    if (saved && ['emerald', 'blue', 'purple', 'rose', 'cyan', 'amber', 'light', 'custom'].includes(saved)) {
       return saved as ColorSchemeId;
     }
     return 'emerald';
   });
 
+  const [customColors, setCustomColors] = useState<CustomThemeColors>(() => {
+    try {
+      const saved = localStorage.getItem('panahan_custom_colors');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_CUSTOM_COLORS;
+  });
+
   useEffect(() => {
     localStorage.setItem('panahan_color_scheme', currentColorScheme);
-    document.documentElement.setAttribute('data-theme', currentColorScheme);
-  }, [currentColorScheme]);
+    localStorage.setItem('panahan_custom_colors', JSON.stringify(customColors));
+    applyThemeStyle(currentColorScheme, customColors);
+  }, [currentColorScheme, customColors]);
 
   const currentSchemeConfig = COLOR_SCHEMES.find((s) => s.id === currentColorScheme) || COLOR_SCHEMES[0];
 
@@ -746,8 +760,33 @@ export default function App() {
         onOpenMysqlModal={() => setIsMysqlModalOpen(true)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 space-y-8">
-        {/* Role View Conditional Rendering */}
+      {/* Dashboard Body Container with Left Sidebar */}
+      <div className="flex-1 max-w-7xl w-full mx-auto flex items-start">
+        {currentRole === 'admin' && isAdminLoggedIn && (
+          <Sidebar
+            currentRole={currentRole}
+            isAdminLoggedIn={isAdminLoggedIn}
+            isCoachRole={isCoachRole}
+            currentUserSession={currentUserSession}
+            adminCredentialsName={adminCredentials.username}
+            activeAdminTab={adminTab}
+            onSelectAdminTab={setAdminTab}
+            studentCount={filteredStudents.length}
+            schoolCount={effectiveSchools.length}
+            unpaidCount={filteredPayments.filter((p) => p.status !== 'Lunas').length}
+            scoreCount={filteredScores.length}
+            onOpenExcelBackupModal={() => setIsExcelBackupModalOpen(true)}
+            onOpenUserManagementModal={() => setIsUserManagementModalOpen(true)}
+            onOpenColorSchemeModal={() => setIsColorSchemeModalOpen(true)}
+            onOpenChangePasswordModal={() => setIsChangePasswordModalOpen(true)}
+            onOpenScanModal={() => setIsScanModalOpen(true)}
+            onOpenMysqlModal={() => setIsMysqlModalOpen(true)}
+            onLogout={handleLogout}
+          />
+        )}
+
+        <main className="flex-1 min-w-0 px-4 lg:px-8 py-6 space-y-6">
+          {/* Role View Conditional Rendering */}
         {currentRole === 'admin' && !isAdminLoggedIn && (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden my-6">
             <div className="absolute -top-20 -right-20 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -1115,6 +1154,7 @@ export default function App() {
           />
         )}
       </main>
+      </div>
 
       {/* App Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-950/90 py-6 text-center text-xs text-slate-400">
@@ -1189,6 +1229,8 @@ export default function App() {
         onClose={() => setIsColorSchemeModalOpen(false)}
         currentColorScheme={currentColorScheme}
         onSelectColorScheme={setCurrentColorScheme}
+        customColors={customColors}
+        onSaveCustomColors={setCustomColors}
       />
 
       <ExcelDataBackupModal

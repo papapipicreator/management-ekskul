@@ -1,190 +1,338 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  LayoutDashboard,
-  School,
-  Users,
-  Calendar,
-  ClipboardCheck,
   Target,
+  ClipboardCheck,
   CreditCard,
+  Users,
   FileSpreadsheet,
-  Bell,
-  BookOpen,
-  Award,
-  ChevronRight,
-  TrendingUp
+  ShieldCheck,
+  UserPlus,
+  Palette,
+  KeyRound,
+  LogOut,
+  QrCode,
+  Menu,
+  X,
+  Database,
+  School,
+  Sparkles
 } from 'lucide-react';
-import { UserRole } from '../types';
+import { Role, UserAccount } from '../types';
 
-export type AdminTab =
-  | 'overview'
-  | 'schools'
-  | 'students'
-  | 'schedules'
-  | 'attendance'
-  | 'scoring'
-  | 'payments'
-  | 'reports';
-
-export type StudentTab =
-  | 'student_schedule'
-  | 'student_attendance'
-  | 'student_scoring'
-  | 'student_payments'
-  | 'student_report';
+export type AdminTab = 'scoring' | 'attendance' | 'payments' | 'master' | 'reports';
 
 interface SidebarProps {
-  currentRole: UserRole;
-  loggedUserRole?: 'admin' | 'coach';
+  currentRole: Role;
+  isAdminLoggedIn: boolean;
+  isCoachRole: boolean;
+  currentUserSession?: UserAccount | null;
+  adminCredentialsName?: string;
   activeAdminTab: AdminTab;
   onSelectAdminTab: (tab: AdminTab) => void;
-  activeStudentTab: StudentTab;
-  onSelectStudentTab: (tab: StudentTab) => void;
   studentCount: number;
   schoolCount: number;
   unpaidCount: number;
+  scoreCount: number;
+  onOpenExcelBackupModal?: () => void;
+  onOpenUserManagementModal?: () => void;
+  onOpenColorSchemeModal?: () => void;
+  onOpenChangePasswordModal?: () => void;
+  onOpenScanModal?: () => void;
+  onOpenMysqlModal?: () => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentRole,
-  loggedUserRole = 'admin',
+  isAdminLoggedIn,
+  isCoachRole,
+  currentUserSession,
+  adminCredentialsName = 'admin',
   activeAdminTab,
   onSelectAdminTab,
-  activeStudentTab,
-  onSelectStudentTab,
   studentCount,
   schoolCount,
   unpaidCount,
+  scoreCount,
+  onOpenExcelBackupModal,
+  onOpenUserManagementModal,
+  onOpenColorSchemeModal,
+  onOpenChangePasswordModal,
+  onOpenScanModal,
+  onOpenMysqlModal,
+  onLogout,
 }) => {
-  const isAdminView = currentRole === 'admin' || currentRole === 'coach';
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const allAdminNavItems = [
-    { id: 'overview', label: 'Ringkasan Dashboard', icon: LayoutDashboard },
-    { id: 'schools', label: 'Kelola Sekolah', icon: School, badge: schoolCount },
-    { id: 'students', label: 'Data Siswa Panahan', icon: Users, badge: studentCount },
-    { id: 'schedules', label: 'Jadwal Latihan', icon: Calendar },
-    { id: 'attendance', label: 'Presensi (Siswa & Pelatih)', icon: ClipboardCheck },
-    { id: 'scoring', label: 'Input Skor Panahan', icon: Target },
-    { id: 'payments', label: 'Keuangan SPP Online', icon: CreditCard, badge: unpaidCount > 0 ? unpaidCount : undefined, badgeColor: 'bg-amber-500' },
-    { id: 'reports', label: 'Export Laporan (PDF/Excel)', icon: FileSpreadsheet },
+  const navItems = [
+    {
+      id: 'scoring' as AdminTab,
+      label: 'Scoring Panahan',
+      icon: Target,
+      activeColor: 'bg-amber-600 text-white shadow-lg shadow-amber-950/40',
+      iconColor: 'text-amber-400',
+      badge: scoreCount > 0 ? scoreCount : undefined,
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+    },
+    {
+      id: 'attendance' as AdminTab,
+      label: 'Presensi Kehadiran',
+      icon: ClipboardCheck,
+      activeColor: 'bg-emerald-600 text-white shadow-lg shadow-emerald-950/40',
+      iconColor: 'text-emerald-400',
+    },
+    {
+      id: 'payments' as AdminTab,
+      label: 'Keuangan SPP',
+      icon: CreditCard,
+      activeColor: 'bg-sky-600 text-white shadow-lg shadow-sky-950/40',
+      iconColor: 'text-sky-400',
+      badge: unpaidCount > 0 ? `${unpaidCount} Tagihan` : undefined,
+      badgeColor: 'bg-amber-500 text-slate-950 font-bold',
+      hideForCoach: true,
+    },
+    {
+      id: 'master' as AdminTab,
+      label: 'Siswa & Sekolah',
+      icon: Users,
+      activeColor: 'bg-purple-600 text-white shadow-lg shadow-purple-950/40',
+      iconColor: 'text-purple-400',
+      badge: studentCount > 0 ? `${studentCount} Siswa` : undefined,
+      badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
+      hideForCoach: true,
+    },
+    {
+      id: 'reports' as AdminTab,
+      label: 'Export Laporan',
+      icon: FileSpreadsheet,
+      activeColor: 'bg-rose-600 text-white shadow-lg shadow-rose-950/40',
+      iconColor: 'text-rose-400',
+      hideForCoach: true,
+    },
   ];
 
-  const adminNavItems =
-    loggedUserRole === 'coach'
-      ? allAdminNavItems.filter((item) => item.id === 'scoring' || item.id === 'attendance')
-      : allAdminNavItems;
+  const filteredNavItems = isCoachRole
+    ? navItems.filter((item) => !item.hideForCoach)
+    : navItems;
 
-  const studentNavItems = [
-    { id: 'student_schedule', label: 'Jadwal Latihan Saya', icon: Calendar },
-    { id: 'student_attendance', label: 'Rekap Kehadiran Saya', icon: ClipboardCheck },
-    { id: 'student_scoring', label: 'Grafik Skor Panahan', icon: TrendingUp },
-    { id: 'student_payments', label: 'Pembayaran SPP Online', icon: CreditCard },
-    { id: 'student_report', label: 'Laporan Perkembangan', icon: Award },
-  ];
+  const handleTabClick = (tabId: AdminTab) => {
+    onSelectAdminTab(tabId);
+    setIsMobileOpen(false);
+  };
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 min-h-[calc(100vh-4rem)]">
-      <div className="p-4 space-y-6">
-        {/* Role Header Badge */}
-        <div className="bg-slate-800/80 rounded-xl p-3 border border-slate-700/60">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Akses Sistem
-            </span>
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isAdminView ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-pulse'
-              }`}
-            />
-          </div>
-          <p className="text-xs font-bold text-slate-100">
-            {isAdminView
-              ? loggedUserRole === 'coach'
-                ? 'Portal Akses Pelatih'
-                : 'Dashboard Backend Admin'
-              : 'Portal Orang Tua'}
-          </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">
-            {isAdminView
-              ? loggedUserRole === 'coach'
-                ? 'Akses Scoring & Presensi'
-                : 'Manajemen Multi-Sekolah'
-              : 'Monitoring & Pembayaran SPP'}
-          </p>
-        </div>
-
-        {/* Navigation Section */}
-        <nav className="space-y-1">
-          <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-            Menu Utama
-          </p>
-
-          {isAdminView
-            ? adminNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeAdminTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onSelectAdminTab(item.id as AdminTab)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-emerald-600/90 text-white shadow-md shadow-emerald-950/40 font-semibold'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge !== undefined && (
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          item.badgeColor || 'bg-slate-800 text-slate-300'
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })
-            : studentNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeStudentTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onSelectStudentTab(item.id as StudentTab)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                      isActive
-                        ? 'bg-amber-600/90 text-white shadow-md shadow-amber-950/40 font-semibold'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                  </button>
-                );
-              })}
-        </nav>
-      </div>
-
-      {/* Footer Info Box */}
-      <div className="p-4 border-t border-slate-800/80">
-        <div className="bg-gradient-to-br from-emerald-950/40 to-slate-900 rounded-xl p-3 border border-emerald-800/30">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs mb-1">
-            <Target className="w-4 h-4 text-emerald-400" />
-            <span>Target Panahan Digital</span>
-          </div>
-          <p className="text-[11px] text-slate-400 leading-snug">
-            Sistem evaluasi skor standar World Archery (10, X, 9 s/d 1) dengan notifikasi otomatis ke WhatsApp Orang Tua.
-          </p>
+    <>
+      {/* Mobile Sidebar Toggle Button Bar */}
+      <div className="md:hidden bg-slate-900/90 border-b border-slate-800 p-3 flex items-center justify-between sticky top-16 z-30 backdrop-blur-md">
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition"
+        >
+          {isMobileOpen ? <X className="w-4 h-4 text-rose-400" /> : <Menu className="w-4 h-4 text-emerald-400" />}
+          <span>{isMobileOpen ? 'Tutup Menu' : 'Menu Dashboard'}</span>
+        </button>
+        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-semibold text-slate-200">
+            {activeAdminTab === 'scoring' && 'Scoring'}
+            {activeAdminTab === 'attendance' && 'Presensi'}
+            {activeAdminTab === 'payments' && 'Keuangan'}
+            {activeAdminTab === 'master' && 'Siswa & Sekolah'}
+            {activeAdminTab === 'reports' && 'Laporan'}
+          </span>
         </div>
       </div>
-    </aside>
+
+      {/* Backdrop overlay for mobile drawer */}
+      {isMobileOpen && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden"
+        />
+      )}
+
+      {/* Sidebar Navigation Panel */}
+      <aside
+        className={`fixed md:sticky top-16 z-40 h-[calc(100vh-4rem)] w-72 bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 ${
+          isMobileOpen ? 'left-0' : '-left-72 md:left-0'
+        }`}
+      >
+        <div className="p-4 space-y-5 overflow-y-auto custom-scrollbar flex-1">
+          {/* User Status Card */}
+          <div className="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800 shadow-inner">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold ${
+                  isCoachRole
+                    ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                    : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                }`}
+              >
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-black text-white truncate">
+                    {currentUserSession?.name || currentUserSession?.username || adminCredentialsName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span
+                    className={`text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
+                      isCoachRole
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    }`}
+                  >
+                    {isCoachRole ? 'Pelatih' : 'Admin'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 truncate">
+                    {isCoachRole ? 'Akses Terbatas' : 'Akses Penuh'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Navigation Menu */}
+          <div className="space-y-1.5">
+            <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">
+              Menu Utama Dashboard
+            </p>
+
+            {filteredNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeAdminTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabClick(item.id)}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? `${item.activeColor}`
+                      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.iconColor}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-800 text-slate-300'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick System Tools / Actions */}
+          <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+            <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">
+              Akses Cepat Sistem
+            </p>
+
+            {onOpenScanModal && (
+              <button
+                onClick={() => {
+                  onOpenScanModal();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-emerald-400 hover:bg-emerald-950/40 hover:text-emerald-300 border border-emerald-500/20 transition-all"
+              >
+                <QrCode className="w-4 h-4 text-emerald-400" />
+                <span>Scan QR Presensi</span>
+              </button>
+            )}
+
+            {!isCoachRole && onOpenExcelBackupModal && (
+              <button
+                onClick={() => {
+                  onOpenExcelBackupModal();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span>Backup & Restore Excel</span>
+              </button>
+            )}
+
+            {!isCoachRole && onOpenUserManagementModal && (
+              <button
+                onClick={() => {
+                  onOpenUserManagementModal();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+              >
+                <UserPlus className="w-4 h-4 text-purple-400" />
+                <span>Kelola User Account</span>
+              </button>
+            )}
+
+            {onOpenColorSchemeModal && (
+              <button
+                onClick={() => {
+                  onOpenColorSchemeModal();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+              >
+                <Palette className="w-4 h-4 text-amber-400" />
+                <span>Skema Warna Tampilan</span>
+              </button>
+            )}
+
+            {onOpenChangePasswordModal && (
+              <button
+                onClick={() => {
+                  onOpenChangePasswordModal();
+                  setIsMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all"
+              >
+                <KeyRound className="w-4 h-4 text-sky-400" />
+                <span>Ubah Akun & Password</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Sidebar Footer Box & Logout Button */}
+        <div className="p-4 border-t border-slate-800/80 space-y-2 bg-slate-950/60">
+          {onOpenMysqlModal && !isCoachRole && (
+            <button
+              onClick={() => {
+                onOpenMysqlModal();
+                setIsMobileOpen(false);
+              }}
+              className="w-full py-2 px-3 bg-blue-950/40 hover:bg-blue-900/60 text-blue-300 border border-blue-800/40 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+            >
+              <Database className="w-3.5 h-3.5 text-blue-400" />
+              <span>MySQL Shared Hosting</span>
+            </button>
+          )}
+
+          {onLogout && (
+            <button
+              onClick={() => {
+                onLogout();
+                setIsMobileOpen(false);
+              }}
+              className="w-full py-2.5 px-3 bg-slate-800 hover:bg-rose-950/80 text-slate-300 hover:text-rose-200 border border-slate-700 hover:border-rose-800/60 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-sm"
+            >
+              <LogOut className="w-4 h-4 text-rose-400" />
+              <span>Logout Admin</span>
+            </button>
+          )}
+        </div>
+      </aside>
+    </>
   );
 };

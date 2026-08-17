@@ -454,70 +454,70 @@ export const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filteredStudents.map((std) => {
             const att = getAttendanceForStudent(std.id);
-            const isPresent = att?.status === 'Hadir';
 
             return (
               <div
                 key={std.id}
-                className="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-slate-700 transition-all"
+                className="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between gap-3 hover:border-slate-700 transition-all shadow-sm"
               >
-                <div className="flex items-center gap-3">
+                {/* Student Info Header (Nama diatas) */}
+                <div className="flex items-center gap-3 w-full">
                   <img
                     src={std.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
                     alt={std.name}
-                    className="w-10 h-10 rounded-full object-cover border border-slate-700"
+                    className="w-11 h-11 rounded-full object-cover border border-slate-700 shrink-0"
                   />
-                  <div>
-                    <h4 className="text-xs font-bold text-white line-clamp-1">{std.name}</h4>
-                    <p className="text-[10px] text-slate-400">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-bold text-white leading-tight break-words">{std.name}</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
                       {std.grade} • {std.bowType} ({std.targetDistance})
                     </p>
                     {att && (
-                      <span className="text-[9px] text-emerald-400 font-mono block mt-0.5">
+                      <span className="text-[10px] text-emerald-400 font-mono block mt-0.5">
                         Jam: {att.timeIn} ({att.method})
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Quick Action Buttons */}
-                <div className="flex items-center gap-1">
+                {/* Quick Action Buttons (Hadir, Izin, Sakit, Alpha dibawah) */}
+                <div className="grid grid-cols-4 gap-1.5 pt-2.5 border-t border-slate-800/80 w-full">
                   <button
                     onClick={() => handleQuickMark(std, 'Hadir')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${
                       att?.status === 'Hadir'
-                        ? 'bg-emerald-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-emerald-900/40'
+                        ? 'bg-emerald-600 text-white shadow-md ring-1 ring-emerald-400'
+                        : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-emerald-900/40'
                     }`}
                   >
                     Hadir
                   </button>
                   <button
                     onClick={() => handleQuickMark(std, 'Izin')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${
                       att?.status === 'Izin'
-                        ? 'bg-amber-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-amber-900/40'
+                        ? 'bg-amber-600 text-white shadow-md ring-1 ring-amber-400'
+                        : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-amber-900/40'
                     }`}
                   >
                     Izin
                   </button>
                   <button
                     onClick={() => handleQuickMark(std, 'Sakit')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${
                       att?.status === 'Sakit'
-                        ? 'bg-sky-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-sky-900/40'
+                        ? 'bg-sky-600 text-white shadow-md ring-1 ring-sky-400'
+                        : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-sky-900/40'
                     }`}
                   >
                     Sakit
                   </button>
                   <button
                     onClick={() => handleQuickMark(std, 'Alpha')}
-                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${
                       att?.status === 'Alpha'
-                        ? 'bg-rose-600 text-white shadow'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-rose-900/40'
+                        ? 'bg-rose-600 text-white shadow-md ring-1 ring-rose-400'
+                        : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-rose-900/40'
                     }`}
                   >
                     Alpha

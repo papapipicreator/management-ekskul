@@ -173,7 +173,20 @@ export interface BankAccountConfig {
   instructions?: string;
 }
 
-export type ColorSchemeId = 'emerald' | 'blue' | 'purple' | 'rose' | 'cyan' | 'amber' | 'light';
+export type ColorSchemeId = 'emerald' | 'blue' | 'purple' | 'rose' | 'cyan' | 'amber' | 'light' | 'custom';
+
+export interface CustomThemeColors {
+  mainBg: string;           // Background utama halaman
+  cardBg: string;           // Background container / kartu
+  innerContainerBg: string; // Background box dalam
+  primaryAccent: string;    // Warna aksen utama
+  secondaryAccent: string;  // Warna aksen sekunder
+  textColor: string;        // Warna teks / font utama
+  textMutedColor: string;   // Warna teks subtitle / keterangan
+  buttonBg: string;         // Warna background tombol
+  buttonText: string;       // Warna teks / font tombol
+  borderColor: string;      // Warna garis tepi / border
+}
 
 export interface ColorSchemeConfig {
   id: ColorSchemeId;
