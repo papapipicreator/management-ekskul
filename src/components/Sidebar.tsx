@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Mobile Sidebar Toggle Button Bar */}
-      <div className="md:hidden bg-slate-900/90 border-b border-slate-800 p-3 flex items-center justify-between sticky top-[65px] z-30 backdrop-blur-md">
+      <div className="md:hidden bg-slate-900/90 border-b border-slate-800 p-2.5 flex items-center justify-between sticky top-[80px] sm:top-[65px] z-30 backdrop-blur-md">
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition"
@@ -153,14 +153,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="fixed inset-0 top-[65px] bg-slate-950/80 backdrop-blur-sm z-35 md:hidden"
+          className="fixed inset-0 top-[115px] sm:top-[100px] bg-slate-950/80 backdrop-blur-sm z-35 md:hidden"
         />
       )}
 
       {/* Sidebar Navigation Panel */}
       <aside
-        className={`fixed md:sticky top-[65px] md:top-[72px] z-35 h-[calc(100vh-4.5rem)] w-72 bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 ${
-          isMobileOpen ? 'left-0' : '-left-72 md:left-0'
+        className={`fixed md:sticky top-[115px] sm:top-[100px] md:top-[72px] z-35 h-[calc(100vh-7.5rem)] md:h-[calc(100vh-4.5rem)] w-72 max-w-[85vw] bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shrink-0 transition-all duration-300 ${
+          isMobileOpen ? 'left-0' : '-left-80 md:left-0'
         }`}
       >
         <div className="p-4 space-y-5 overflow-y-auto custom-scrollbar flex-1">

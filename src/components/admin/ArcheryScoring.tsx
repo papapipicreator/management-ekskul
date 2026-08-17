@@ -317,26 +317,26 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
           {/* Right 2 Columns: Scoring Pad & Ends Table */}
           <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5">
             {/* Realtime KPI Bar */}
-            <div className="grid grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-slate-950 p-3 sm:p-4 rounded-xl border border-slate-800 text-center">
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block">Total Skor</span>
-                <span className="text-xl font-black text-amber-400">{totalScore}</span>
+                <span className="text-lg sm:text-xl font-black text-amber-400">{totalScore}</span>
                 <span className="text-[10px] text-slate-500 block">/ {maxPossibleScore}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block">Rata-Rata</span>
-                <span className="text-xl font-black text-emerald-400">{averageArrow.toFixed(2)}</span>
+                <span className="text-lg sm:text-xl font-black text-emerald-400">{averageArrow.toFixed(2)}</span>
                 <span className="text-[10px] text-slate-500 block">per anak panah</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block">Jumlah 10s</span>
-                <span className="text-xl font-black text-yellow-300">{tenCount}</span>
+                <span className="text-lg sm:text-xl font-black text-yellow-300">{tenCount}</span>
                 <span className="text-[10px] text-slate-500 block">Emas</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-semibold block">Jumlah Xs</span>
-                <span className="text-xl font-black text-sky-400">{xCount}</span>
-                <span className="text-[10px] text-slate-500 block">Center Bullseye</span>
+                <span className="text-lg sm:text-xl font-black text-sky-400">{xCount}</span>
+                <span className="text-[10px] text-slate-500 block">Bullseye</span>
               </div>
             </div>
 
@@ -422,15 +422,15 @@ export const ArcheryScoring: React.FC<ArcheryScoringProps> = ({
             {/* Numeric Keypad Buttons */}
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                Klik Skor Anak Panah (Sesuai Warna Cincin):
+                Klik Skor Anak Panah (Sesuai Cincin Target):
               </span>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                 {(['X', 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0] as (number | string)[]).map((scoreVal) => (
                   <button
                     key={String(scoreVal)}
                     type="button"
                     onClick={() => handleScoreInput(scoreVal)}
-                    className={`py-3 rounded-xl border text-sm font-bold transition-all shadow ${
+                    className={`py-2.5 sm:py-3 rounded-xl border text-xs sm:text-sm font-bold transition-all shadow ${
                       scoreVal === 'X'
                         ? 'bg-amber-400 text-slate-950 font-black border-amber-300 hover:bg-amber-300 hover:shadow-amber-500/20 shadow-md ring-1 ring-amber-400/50'
                         : typeof scoreVal === 'number' && scoreVal >= 9

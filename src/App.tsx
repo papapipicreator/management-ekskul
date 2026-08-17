@@ -829,10 +829,10 @@ export default function App() {
         {currentRole === 'admin' && isAdminLoggedIn && (
           <div className="space-y-6">
             {/* Admin Header Status Bar with Logout, User Mgmt & Change Password */}
-            <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg flex-wrap gap-3">
-              <div className="flex items-center gap-3">
+            <div className="bg-slate-900/90 border border-emerald-500/30 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between shadow-lg gap-3">
+              <div className="flex items-start sm:items-center gap-3">
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-bold shrink-0 mt-0.5 sm:mt-0 ${
                     isCoachRole
                       ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
                       : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
@@ -840,25 +840,25 @@ export default function App() {
                 >
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black text-white">
-                      Sesi {isCoachRole ? 'Pelatih' : 'Admin'} ({currentUserSession?.name || currentUserSession?.username || adminCredentials.username}) Terautentikasi
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-xs sm:text-sm font-black text-white leading-snug">
+                      Sesi {isCoachRole ? 'Pelatih' : 'Admin'} ({currentUserSession?.name || currentUserSession?.username || adminCredentials.username})
                     </h3>
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      className={`text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                         isCoachRole
                           ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
                           : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                       }`}
                     >
-                      {isCoachRole ? 'Akses Terbatas: Scoring & Presensi' : 'Akses Penuh'}
+                      {isCoachRole ? 'Akses Pelatih' : 'Akses Penuh'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
                     {isCoachRole
-                      ? 'Anda memiliki akses khusus untuk membuka data scoring panahan dan presensi kehadiran sekolah yang Anda latih.'
-                      : 'Anda memiliki akses penuh untuk mengedit data siswa, presensi, scoring, keuangan, dan kelola user.'}
+                      ? 'Akses khusus data scoring & presensi kehadiran.'
+                      : 'Akses pengelolaan siswa, presensi, scoring, keuangan, dan user.'}
                   </p>
                   {isCoachRole && (
                     <p className="text-[11px] text-amber-300 font-semibold mt-1">
@@ -873,41 +873,46 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
                 {!isCoachRole && (
                   <>
                     <button
                       onClick={() => setIsExcelBackupModalOpen(true)}
-                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                      className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/40 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow"
                     >
-                      <FileSpreadsheet className="w-4 h-4 text-emerald-200" /> Backup & Restore Excel
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
+                      <span className="truncate">Backup Excel</span>
                     </button>
                     <button
                       onClick={() => setIsUserManagementModalOpen(true)}
-                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                      className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-slate-700 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow"
                     >
-                      <UserPlus className="w-4 h-4" /> Kelola User
+                      <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">Kelola User</span>
                     </button>
                   </>
                 )}
                 <button
                   onClick={() => setIsColorSchemeModalOpen(true)}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white border border-amber-500/30 hover:border-amber-500/50 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white border border-amber-500/30 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow"
                   title="Ubah Skema Warna Tampilan"
                 >
-                  <Palette className="w-4 h-4 text-amber-400" /> Skema Warna
+                  <Palette className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">Warna</span>
                 </button>
                 <button
                   onClick={() => setIsChangePasswordModalOpen(true)}
-                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow"
+                  className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white border border-slate-700 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow"
                 >
-                  <KeyRound className="w-4 h-4 text-sky-400" /> Ubah Akun & Password
+                  <KeyRound className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span className="truncate">Password</span>
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-800 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow"
+                  className="col-span-2 sm:col-span-1 px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-800 hover:bg-rose-950/60 text-slate-200 hover:text-rose-300 border border-slate-700 hover:border-rose-800 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow"
                 >
-                  <LogOut className="w-4 h-4 text-rose-400" /> Logout
+                  <LogOut className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
