@@ -705,7 +705,7 @@ export default function App() {
   const filteredPayments = selectedSchoolId === 'ALL' ? effectivePayments : effectivePayments.filter((p) => p.schoolId === selectedSchoolId);
 
   return (
-    <div className={`min-h-screen ${currentSchemeConfig.bgClass} ${currentSchemeConfig.textClass} font-sans antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-slate-950`}>
+    <div className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col ${currentSchemeConfig.bgClass} ${currentSchemeConfig.textClass} font-sans antialiased transition-colors duration-300 selection:bg-emerald-500 selection:text-slate-950`}>
       {/* Smartphone Direct QR Presensi Success Banner */}
       {directQrNotification && (
         <div className="bg-emerald-600 text-white px-4 py-3 shadow-2xl flex items-center justify-between z-50 border-b border-emerald-400 animate-in slide-in-from-top duration-300">
@@ -761,7 +761,7 @@ export default function App() {
       />
 
       {/* Dashboard Body Container with Left Sidebar */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex items-start">
+      <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row items-stretch md:items-start min-w-0">
         {currentRole === 'admin' && isAdminLoggedIn && (
           <Sidebar
             currentRole={currentRole}
@@ -788,7 +788,7 @@ export default function App() {
           />
         )}
 
-        <main className="flex-1 min-w-0 px-4 lg:px-8 py-6 space-y-6">
+        <main className="flex-1 min-w-0 w-full max-w-full px-3 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-4 sm:space-y-6">
           {/* Role View Conditional Rendering */}
         {currentRole === 'admin' && !isAdminLoggedIn && (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center space-y-6 shadow-2xl relative overflow-hidden my-6">
